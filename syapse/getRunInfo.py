@@ -77,8 +77,13 @@ class Run:
         return self.sequencingInstrument
 
     def getSequencingRequest(self, laneNum):
-        #Returns only first in list for multiple matching requests
-        return self.getMatchingSequencingRequests(self.getLibraries()[laneNum])[0]
+        # Returns only first in list for multiple matching requests
+        libraries = self.getLibraries()[laneNum]
+        sequencing_requests = self.getMatchingSequencingRequests(libraries)
+        if len(sequencing_requests) == 0:
+            return None
+        else:
+            return sequencing_requests[0]
 
     def getMatchingSequencingRequests(self, library):
         results = self.conn.kb.executeSyQLQuery(
@@ -159,7 +164,7 @@ class Run:
             request = self.getSequencingRequest(index)
             params[prefix+prefix2+'sample_name'] = self.getLibraries()[index].name.value()
             #submitter
-            if not self.hasMappingRequest(request):
+            if (request == None) or (not self.hasMappingRequest(request)):
                 params[prefix+prefix2+'analysis_type'] = 'sequence'
             else:
                 params[prefix+prefix2+'analysis_type'] = 'map'
@@ -176,8 +181,27 @@ class Run:
                 params[prefix+prefix2+'sgr_extension'] = request.scgpmSgrExtension.value()
         return params
 
-
-
+    def getGeraldParamsForLane(self, index):
+        params = {}
+        request = self.getSequencingRequest(index)
+        params['sample_name'] = self.getLibraries()[index].name.value()
+            #submitter
+        if (request == None) or (not self.hasMappingRequest(request)):
+            params['analysis_type'] = 'sequence'
+        else:
+            params['analysis_type'] = 'map'
+            params['mapping_program'] = request.sequenceMappingProgram.value()
+            params['read1_num_skipped_bases'] = request.hasSkippedBases.value().read1.value()
+            params['read2_num_skipped_bases'] = request.hasSkippedBases.value().read2.value()
+            params['read1_num_mapped_bases'] = request.hasMappedBases.value().read1.value()
+            params['read2_num_mapped_bases'] = request.hasMappedBases.value().read2.value()
+            params['max_mismatches'] = request.maxNumMismatchingBases.value()
+            params['max_mismatches'] = request.maxNumHitsPerRead.value()
+            params['reference_sequence_name'] = request.referenceSequence.value()
+            params['filter_poly_a'] = request.filterPolyA.value()
+            params['generate_sgr'] = request.scgpmGenerateSgrSignalTrack.value()
+            params['sgr_extension'] = request.scgpmSgrExtension.value()
+        return params
 
     def hasMappingRequest(self, request):
         if request.sequenceMappingProgram.value():
@@ -191,6 +215,9 @@ class Run:
         self.printDict(self.getBarcodeParams())
         self.printDict(self.getGeraldParams())
 
+    def printParamsForLane(self, index):
+        self.printDict(self.getGeraldParamsForLane(index))
+
     def printDict(self, params):
         for param in params:
             print "%s %s" % (param, params[param])
@@ -198,6 +225,7 @@ class Run:
 def initialize_parser():
     parser=ArgumentParser('Query the Syapse LIMS to get information for a sequencing run')
     parser.add_argument('--run_name', required=True)
+    parser.add_argument('--lane')
     parser.add_argument('--user')
     parser.add_argument('--password')
     parser.add_argument('--project', default = 29792)
@@ -239,4 +267,7 @@ if __name__=='__main__':
     conn.current_project = conn.retrieveProject('s:project/%s' % project)
 
     run = Run(runName, conn)
-    run.printParams()
+    if args.lane:
+        run.printParamsForLane(int(args.lane))
+    else:
+        run.printParams()
