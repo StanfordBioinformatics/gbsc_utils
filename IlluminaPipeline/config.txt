@@ -1,0 +1,149 @@
+reverse_lanes false
+platform hiseq2000
+base_calls_dir 
+run_name 140219_HAVERS_0439_AC3CRKACXX
+paired_end false
+seq_software hcs_1_5_15
+index1_cycles 7
+pipeline_version 1.9.0-1.8.2
+archive_dir /srv/gsfs0/projects/gbsc/SeqCenter/Illumina/PublishedResults/2014/feb/140219_HAVERS_0439_AC3CRKACXX
+read1_cycles 101
+control_lane 5
+starting_data_type base_calls_bcl
+flow_cell C3CRK
+index2_cycles 
+run_dir /srv/gsfs0/projects/gbsc/SeqCenter/Illumina/RunsInProgress/140219_HAVERS_0439_AC3CRKACXX
+pipeline_run_id 1949
+matrix_cycle 
+index_read true
+intensities_dir 
+read2_cycles 
+platform_name HiSeq 2000
+read2_matrix_cycle 
+lane:1:dna_library_id 11500
+lane:1:multiplexed true
+lane:1:submitter Weiguo Feng
+lane:1:sample_name PL8_rep
+lane:1:barcode_size 6
+lane:1:barcode_position index_read
+lane:1:owner 
+lane:1:barcode_size2 
+lane:1:barcode_count 4
+lane:1:barcode:0:codepoint ACTTGA
+lane:1:barcode:0:name 
+lane:1:barcode:1:codepoint GGCTAC
+lane:1:barcode:1:name 
+lane:1:barcode:2:codepoint CTTGTA
+lane:1:barcode:2:name 
+lane:1:barcode:3:codepoint TAGCTT
+lane:1:barcode:3:name 
+lane:2:dna_library_id 11501
+lane:2:multiplexed true
+lane:2:submitter Weiguo Feng
+lane:2:sample_name PL9
+lane:2:barcode_size 6
+lane:2:barcode_position index_read
+lane:2:owner 
+lane:2:barcode_size2 
+lane:2:barcode_count 4
+lane:2:barcode:0:codepoint CGATGT
+lane:2:barcode:0:name 
+lane:2:barcode:1:codepoint TGACCA
+lane:2:barcode:1:name 
+lane:2:barcode:2:codepoint GCCAAT
+lane:2:barcode:2:name 
+lane:2:barcode:3:codepoint ACTTGA
+lane:2:barcode:3:name 
+lane:3:dna_library_id 11502
+lane:3:multiplexed true
+lane:3:submitter Weiguo Feng
+lane:3:sample_name PL10
+lane:3:barcode_size 6
+lane:3:barcode_position index_read
+lane:3:owner 
+lane:3:barcode_size2 
+lane:3:barcode_count 4
+lane:3:barcode:0:codepoint ACTTGA
+lane:3:barcode:0:name 
+lane:3:barcode:1:codepoint GGCTAC
+lane:3:barcode:1:name 
+lane:3:barcode:2:codepoint CTTGTA
+lane:3:barcode:2:name 
+lane:3:barcode:3:codepoint TAGCTT
+lane:3:barcode:3:name 
+lane:4:dna_library_id 11478
+lane:4:multiplexed true
+lane:4:submitter Jewison Biscocho
+lane:4:sample_name JBISCOCHO_RNAseqAML3
+lane:4:barcode_size 6
+lane:4:barcode_position index_read
+lane:4:owner 
+lane:4:barcode_size2 
+lane:4:barcode_count 4
+lane:4:barcode:0:codepoint CGATGT
+lane:4:barcode:0:name 
+lane:4:barcode:1:codepoint TGACCA
+lane:4:barcode:1:name 
+lane:4:barcode:2:codepoint ACAGTG
+lane:4:barcode:2:name 
+lane:4:barcode:3:codepoint GCCAAT
+lane:4:barcode:3:name 
+lane:5:dna_library_id 20
+lane:5:multiplexed false
+lane:5:submitter Lucia Ramirez
+lane:5:sample_name PhiX
+lane:5:barcode_size 0
+lane:5:barcode_position no_barcode
+lane:5:owner 
+lane:5:barcode_size2 
+lane:5:barcode_count 0
+lane:6:dna_library_id 11518
+lane:6:multiplexed true
+lane:6:submitter Neali Armstrong
+lane:6:sample_name ACD1
+lane:6:barcode_size 6
+lane:6:barcode_position index_read
+lane:6:owner 
+lane:6:barcode_size2 
+lane:6:barcode_count 3
+lane:6:barcode:0:codepoint AAGGGA
+lane:6:barcode:0:name 
+lane:6:barcode:1:codepoint CCTTCA
+lane:6:barcode:1:name 
+lane:6:barcode:2:codepoint GGACCC
+lane:6:barcode:2:name 
+lane:7:dna_library_id 11513
+lane:7:multiplexed true
+lane:7:submitter Trupti Kawli
+lane:7:sample_name # 785_A_TruSeq rcvd 2/13/14
+lane:7:barcode_size 6
+lane:7:barcode_position index_read
+lane:7:owner 
+lane:7:barcode_size2 
+lane:7:barcode_count 4
+lane:7:barcode:0:codepoint ATCACG
+lane:7:barcode:0:name 
+lane:7:barcode:1:codepoint CGATGT
+lane:7:barcode:1:name 
+lane:7:barcode:2:codepoint TTAGGC
+lane:7:barcode:2:name 
+lane:7:barcode:3:codepoint TGACCA
+lane:7:barcode:3:name 
+lane:8:dna_library_id 11514
+lane:8:multiplexed true
+lane:8:submitter Trupti Kawli
+lane:8:sample_name # 790_A_TruSeq rcvd 2/13/14
+lane:8:barcode_size 6
+lane:8:barcode_position index_read
+lane:8:owner 
+lane:8:barcode_size2 
+lane:8:barcode_count 4
+lane:8:barcode:0:codepoint ATCACG
+lane:8:barcode:0:name 
+lane:8:barcode:1:codepoint CGATGT
+lane:8:barcode:1:name 
+lane:8:barcode:2:codepoint TTAGGC
+lane:8:barcode:2:name 
+lane:8:barcode:3:codepoint TGACCA
+lane:8:barcode:3:name 
+num_gerald_runs 0
