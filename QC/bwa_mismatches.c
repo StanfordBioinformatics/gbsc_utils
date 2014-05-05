@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <string.h>
-#include <malloc.h>
 #include <assert.h>
 #include "bam/sam.h"
 
@@ -21,10 +20,11 @@ static struct option long_opts[] = {
     {"out", required_argument, 0, 'o'},
     {"sam_in", no_argument, 0, 'S'},
     {"verbose", no_argument, 0, 'v'},
+    {"length", required_argument, 0, 'l'},
     {0, 0, 0, 0}
 };
 
-static char *short_opts = "o:Sv";
+static char *short_opts = "o:Svl:";
 
 void
 usage(int exit_code)
@@ -34,20 +34,28 @@ usage(int exit_code)
 	    "Options:\n"
 	    "  -o, --out file         data output file\n"
 	    "  -S, --sam_in           input is SAM (default BAM)\n"
+	    "  -l, --length int       maximum read length\n"
 	    "  -v, --verbose          print verbose messages\n");
     exit(exit_code);
 }
 
-void
+void 
+set_read_length(unsigned set_val, unsigned *read_len,
+		  unsigned **read_error_count)
+{
+  *read_len = set_val;
+  *read_error_count = (unsigned *)malloc(sizeof(unsigned) * set_val);
+  memset(*read_error_count, 0, sizeof(unsigned) * set_val);
+}
+
+void 
 check_read_length(unsigned qlen, unsigned *read_len,
 		  unsigned **read_error_count)
 {
     if (*read_len == 0) {
-	*read_len = qlen;
-	*read_error_count = (unsigned *)malloc(sizeof(unsigned) * qlen);
-	memset(*read_error_count, 0, sizeof(unsigned) * qlen);
-    } else if (*read_len != qlen) {
-	fprintf(stderr, "bam_mismatches: reads have different lengths\n");
+        set_read_length(qlen, read_len, read_error_count);
+    } else if (*read_len < qlen) {
+	fprintf(stderr, "bam_mismatches: read length exceeds expected value. Use the -l option to specify the maximum read length\n");
 	exit(1);
     }
 }
@@ -77,7 +85,7 @@ main(int argc, char **argv)
 
     int opt;
     int paired = -1;
-    unsigned total_count = 0;
+    unsigned total_count = 1; //TODO: delete this
     unsigned analyzed_count = 0;
     unsigned read1_len = 0;
     unsigned read2_len = 0;
@@ -101,6 +109,12 @@ main(int argc, char **argv)
 	case 'v':
 	    verbose = 1;
 	    break;
+        case 'l':
+	    set_read_length(atoi(optarg), &read1_len,
+			    &read1_error_count);
+	    set_read_length(atoi(optarg), &read2_len,
+			    &read2_error_count);
+	  break;
 	default:
 	    usage(1);
 	    break;
