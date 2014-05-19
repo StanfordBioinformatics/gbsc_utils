@@ -1,0 +1,35 @@
+[Header],,,,,,,,,,
+IEMFileVersion,4,,,,,,,,,
+Investigator Name,Ghia Euskirchen,,,,,,,,,
+Project Name,,,,,,,,,,
+Experiment Name,SvG Pool 111813,,,,,,,,,
+Date,11/19/2013,,,,,,,,,
+Workflow,Resequencing,,,,,,,,,
+Application,Resequencing,,,,,,,,,
+Assay,Nextera,,,,,,,,,
+Description,,,,,,,,,,
+Chemistry,Amplicon,,,,,,,,,
+,,,,,,,,,,
+[Reads],,,,,,,,,,
+250,,,,,,,,,,
+250,,,,,,,,,,
+,,,,,,,,,,
+[Settings],,,,,,,,,,
+,,,,,,,,,,
+[Data],,,,,,,,,,
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description,GenomeFolder
+HCalb2,,,,N701,TAAGGCGA,N501,TAGATCGC,,,Ghiacustom2
+HCalb3,,,,N702,CGTACTAG,N501,TAGATCGC,,,Ghiacustom2
+HCWT5,,,,N704,TCCTGAGC,N501,TAGATCGC,,,Ghiacustom2
+BB-Eagle,,,,N707,CTCTCTAC,N506,ACTGCATA,,,Ghiacustom2
+BigSurAlb706,,,,N706,TAGGCATG,N503,TATCCTCT,,,Ghiacustom2
+FernAlb702,,,,N701,TAAGGCGA,N502,CTCTCTAT,,,Ghiacustom2
+BB3green,,,,N708,CAGAGAGG,N506,ACTGCATA,,,Ghiacustom2
+BB5green,,,,N709,GCTACGCT,N505,GTAAGGAG,,,Ghiacustom2
+BB7green,,,,N711,AAGAGGCA,N508,CTAAGCCT,,,Ghiacustom2
+Blank1,,,,N701,TAAGGCGA,N506,ACTGCATA,,,Ghiacustom2
+Blank2,,,,N702,CGTACTAG,N506,ACTGCATA,,,Ghiacustom2
+Blank3,,,,N704,TCCTGAGC,N503,TATCCTCT,,,Ghiacustom2
+Blank4,,,,N706,TAGGCATG,N501,TAGATCGC,,,Ghiacustom2
+Blank5,,,,N707,CTCTCTAC,N505,GTAAGGAG,,,Ghiacustom2
+Blank6,,,,N708,CAGAGAGG,N508,CTAAGCCT,,,Ghiacustom2
