@@ -3,6 +3,11 @@
 ###
 
 class Parse():
+	"""
+	Parses a configuration file having key and value pairs separated by "=". Whitespace is allowed before and after the separator.
+	Lines beginning with "#" (or any whitespace then a "#") are skipped.
+	Objects of this class look and feel like dictionaries whose keys are the keys in the configuration file.
+	"""
 	def __init__(self,confFile):
 		self.confFile=confFile
 		self.dico = self.__confDico()	

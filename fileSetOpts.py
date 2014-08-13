@@ -1,5 +1,11 @@
+###
+#AUTHOR: Nathaniel Watson
+###
+
 import argparse
 import os
+
+description = "Given two files containing row-by-row records whose fields are delimited by the specified delimiter, calculates the set difference or the set intersection between the two datasets based on a comparison of the primary key between each dataset. At present, only one field in each file may serve as the primary key."
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-r","--reference",required=True,help="The reference file.")
