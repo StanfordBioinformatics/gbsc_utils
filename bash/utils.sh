@@ -16,6 +16,7 @@ fastqRecCount() {
 dirEmpty() {
 	dirname=$1
 	count=$(ls -A $dirname)
+	count=($count)
 	if [[ ${#count} -eq 0 ]]
   then
     echo 1
