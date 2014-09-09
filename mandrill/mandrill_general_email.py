@@ -1,3 +1,8 @@
+###
+#AUTHOR: Nathaniel Watson
+###
+
+
 import mandrill
 import confparse
 import os

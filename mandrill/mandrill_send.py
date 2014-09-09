@@ -1,3 +1,7 @@
+###
+#AUTHOR: Nathaniel Watson
+###
+
 import mandrill
 from argparse import ArgumentParser
 
