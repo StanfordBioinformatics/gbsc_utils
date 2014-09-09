@@ -19,7 +19,7 @@ class SampleSheetMiSeqToHiSeq:
 		wsReg = re.compile("\s")
 		reg = re.compile(r'^\[\w+\]$')
 		dico = {}
-		key = "extra"
+		dico["extra"] = []
 		fh = open(self.SampleSheet,'r')
 		for line in fh:
 			line = line.strip()
@@ -32,6 +32,7 @@ class SampleSheetMiSeqToHiSeq:
 				continue
 			line = wsReg.sub("",line) #white space not allowed in sample lines when demultiplexing
 			dico[key].append(line)
+#		print(dico)
 		return dico
 	
 

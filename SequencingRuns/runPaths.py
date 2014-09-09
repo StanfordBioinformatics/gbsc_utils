@@ -53,7 +53,7 @@ def getRunYearMonth(run):
 
 def getArchivePath(run):
 	"""
-	Function : Calculates the absolute directory path to a run. First checks oldRunsArchive, the newRunsArchive (constants).
+	Function : Calculates the absolute directory path to a run. First checks newRunsArchive, then oldRunsArchive (constants).
 	Args     : Run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
 	Returns  : str, or the None object.
 	"""
@@ -69,8 +69,17 @@ def getArchivePath(run):
 			raise OSError("Archive for run {run} does not exist. Checked old archive path {oldArchiveDir} and new archie path {newArchiveDir}.".format(run=run,oldArchiveDir=oldArchiveDir,newArchiveDir=newArchiveDir))
 
 def getBamFile(runName,archive,fileName,log=None):
+	"""
+	Function : Tries to find a BAM file in a given run directory in the given archive. The main purpose of this function is to check for the BAM file in two places: first, immediately
+					   within the run directory (where they used to be back in 2012), second, within a lane subdirectory.
+	Args     : runName - Run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
+						 archive - folder path that contains the directory runName
+						 fileName - the name of the BAM file to look for (no directory path prefix)
+						 log - a file handle open for writing. Used to track which BAMS are missing so that they can be later created if need-be.
+	"""
+	
 	lane = getLaneReg.search(fileName).groups()[0]
-	path1 = os.path.join(os.path.join(archive,fileName))
+	path1 = os.path.join(archive,fileName)
 	if os.path.exists(path1):
 		return path1
 	path2 = os.path.join(archive,lane,fileName)

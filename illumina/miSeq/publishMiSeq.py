@@ -87,9 +87,6 @@ if not noemail:
 	nummelPath = os.path.join(nummelPub,yr,moText,run)
 	fout.write("""
 Sequencing results for MiSeq run {run}
-
-
-
 Hi {name},
 
 The results from your sequencing your run {run} can be found at the link below:
