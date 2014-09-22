@@ -41,8 +41,8 @@ class ScoringRun(object):
 		if not os.path.exists(self.idrFile):
 			raise OSError("Can't locate idr results file that was expected to be at '{idrFile}'".format(idrFile=self.idrFile))
 		if not os.path.exists(self.repStatsFile):
-			if not noRepStats:
-				raise OSError("Can't locate rep stats file that was expected to be at '{repStatsFile}'".format(repStatsFile=self.repStatsFile))
+#			if not noRepStats:
+#				raise OSError("Can't locate rep stats file that was expected to be at '{repStatsFile}'".format(repStatsFile=self.repStatsFile))
 			self.repStatsFile = False
 
 
