@@ -8,6 +8,8 @@ import os
 
 oldRunsArchive = "/srv/gs1/projects/scg/Archive/IlluminaRuns/"
 newRunsArchive = "/srv/gsfs0/projects/seq_center/Illumina/RawDataArchive"
+pubDir = "/srv/gsfs0/projects/seq_center/Illumina/PublishedResults"
+oldPubDir = "/srv/gs1/projects/scg/Archive/IlluminaRuns/" #"/srv/gs1/projects/scg/Archive/IlluminaRuns"
 splitLaneReg = re.compile(r'_L\d_')
 getLaneReg = re.compile(r'_(L\d)_')
 
@@ -53,9 +55,10 @@ def getRunYearMonth(run):
 
 def getArchivePath(run):
 	"""
-	Function : Calculates the absolute directory path to a run. First checks newRunsArchive, then oldRunsArchive (constants).
-	Args     : Run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
-	Returns  : str, or the None object.
+	Function : Calculates the absolute directory path to a run in the archive directory. First checks newRunsArchive, then oldRunsArchive (constants).
+	Args     : run - Run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
+	Returns  : str
+	Raises   : OSError if run can't be located.
 	"""
 	year,month = getRunYearMonth(run)
 	newArchiveDir = os.path.join(newRunsArchive,year,month,run)
@@ -68,24 +71,42 @@ def getArchivePath(run):
 		else:			
 			raise OSError("Archive for run {run} does not exist. Checked old archive path {oldArchiveDir} and new archie path {newArchiveDir}.".format(run=run,oldArchiveDir=oldArchiveDir,newArchiveDir=newArchiveDir))
 
-def getBamFile(runName,archive,fileName,log=None):
+
+
+def getPubPath(run):
 	"""
-	Function : Tries to find a BAM file in a given run directory in the given archive. The main purpose of this function is to check for the BAM file in two places: first, immediately
+	Function : Calculates the absolute directory path to a run in the published results directory.
+	Args     : run - run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
+	Returns  : str
+	Raises   : OSError if run can't be located.
+	"""
+	year,month = getRunYearMonth(run)
+	pubdir = os.path.join(pubDir,year,month,run)
+	rundir = pubdir
+	if not os.path.exists(pubdir):
+		oldpubdir = os.path.join(oldPubDir,year,month,run)	
+		rundir = oldpubdir
+		if not os.path.exists(oldpubdir):
+			raise OSError("Published directory for run {run} does not exist. Checked old published path {oldpubdir} and new published path {pubdir}.".format(run=run,oldpubdir=oldpubdir,pubdir=pubdir))
+	return rundir
+
+def getBamFile(rundir,fileName,log=None):
+	"""
+	Function : Tries to find a BAM file in a given run directory in the given rundir. The main purpose of this function is to check for the BAM file in two places: first, immediately
 					   within the run directory (where they used to be back in 2012), second, within a lane subdirectory.
-	Args     : runName - Run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
-						 archive - folder path that contains the directory runName
+	Args     : rundir - path to the run directory (i.e. could be a published path or an archive path)
 						 fileName - the name of the BAM file to look for (no directory path prefix)
 						 log - a file handle open for writing. Used to track which BAMS are missing so that they can be later created if need-be.
 	"""
-	
+	runName = os.path.basename(rundir)	
 	lane = getLaneReg.search(fileName).groups()[0]
-	path1 = os.path.join(archive,fileName)
+	path1 = os.path.join(rundir,fileName)
 	if os.path.exists(path1):
 		return path1
-	path2 = os.path.join(archive,lane,fileName)
+	path2 = os.path.join(rundir,lane,fileName)
 	if os.path.exists(path2):
 		return path2
 	else:
 		if log:
-			log.write(runName + "\t" + archive + "\t" + lane + "\t" + fileName + "\n")
+			log.write(runName + "\t" + rundir + "\t" + lane + "\t" + fileName + "\n")
 		return None
