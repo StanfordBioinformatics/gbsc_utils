@@ -99,7 +99,7 @@ for line in fh:
 
 		if not controlRep2:
 			continue #bam doesn't exist (logged to bout)
-		controls += "," + controlRep1
+		controls += "," + controlRep2
 	controlConfFile = os.path.join(controlInputsDir,"control.conf")
 	sampleConfFile = os.path.join(sampInputsDir,"sample.conf")
 	sfout = open(sampleConfFile,'w')
