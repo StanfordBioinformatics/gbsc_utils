@@ -42,7 +42,7 @@ for line in fh:
 #				print("Continuing")
 #				continue  #assume that scoring is still ongoing
 	control = line[args.control_field_pos].strip()
-	cmd = "ruby runPeakseqWithoutSnapUpdates.rb --name {run} --control {control} --force".format(run=run,control=control)
+	cmd = "qsub -m a -M nathankw@stanford.edu -V ruby runPeakseqWithoutSnapUpdates.rb --name {run} --control {control} --force".format(run=run,control=control)
 	if args.paired_end:
 		cmd += " --paired-end"
 	if args.rescore_control > 0:

@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+#
 require 'optparse'
 require 'ostruct'
 require 'snap_peakseq_caller'
@@ -122,18 +124,27 @@ if options.force:
 end 
 
 cmd += " #{controlConf} #{sampConf}"
-cmd += " 2> #{stderr} | tee #{stdout}"
+cmd += " 2> #{stderr}"
 puts cmd
 putToLog = "echo #{cmd} >> #{snapLog}"
 system(putToLog)
-system(cmd)
+if $?.to_i > 0
+	puts "Error running '#{cmd}' - failed with exit code #{$?}"
+else 
+	puts "no"
+end
 
 t = Time.new #current time
 timeVal = t.year.to_s + "-" + t.month.to_s + "-" + t.day.to_s 
-system(cmd)
-t2 = Time.new
-tw = t.year.to_s + "-" + t.month.to_s + "-" + t.day.to_s
-system("echo 'Start Time: #{t}' >> #{snapLog}")
-system("echo 'End Time: #{t2}' >> #{snapLog}")
+res = system(cmd) 
+puts $?.to_i
+if not res or $?.to_i > 0
+	puts "Error running '#{cmd}'. Tried to run command in runPeakseqWithoutSnapUpdates.rb."
+	exit(1)
+end
+#t2 = Time.new
+#tw = t.year.to_s + "-" + t.month.to_s + "-" + t.day.to_s
+#system("echo 'Start Time: #{t}' >> #{snapLog}")
+#system("echo 'End Time: #{t2}' >> #{snapLog}")
 #python /srv/gs1/projects/scg/Scoring/pipeline2/pipeline.py -n GM12878_Bmi1NBP196140_Score_14Jun03_102907 -l /srv/gs1/projects/scg/SNAP_Scoring/production/replicates/human/MACS_390_production/inputs -c macs --rescore_control --paired_end --genome hg19_male --force -m trupti@stanford.edu -m scg_scoring@lists.stanford.edu /srv/gs1/projects/scg/SNAP_Scoring/production/controls/human/CellLine1_Control516/inputs/control.conf /srv/gs1/projects/scg/SNAP_Scoring/production/replicates/human/MACS_390_production/inputs/sample.conf 2>/srv/gs1/projects/scg/SNAP_Scoring/production/replicates/human/MACS_390_production/inputs/pipeline.py_stderr.txt | tee /srv/gs1/projects/scg/SNAP_Scoring/production/replicates/human/MACS_390_production/inputs/pipeline.py_stdout.txt")
 #
