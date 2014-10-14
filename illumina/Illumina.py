@@ -66,8 +66,15 @@ class SampleSheetMiSeqToHiSeq:
 		except ValueError:
 			pass
 		
-		i7indexIdField = header.index("I7_Index_ID")
-		i7indexField = header.index("index")
+		i7indexIdField = False
+		try:
+			i7indexIdField = header.index("I7_Index_ID")
+		except ValueError:
+			pass
+
+		i7indexField = False
+		if i7indexIdField:	
+			i7indexField = header.index("index")
 		
 		i5indexIdField = False
 		try:
@@ -76,10 +83,8 @@ class SampleSheetMiSeqToHiSeq:
 			pass
 
 		i5indexField = False
-		try:
+		if i5indexIdField:
 			i5indexField = header.index("index2")
-		except ValueError:
-			pass
 
 		sprojectField = header.index("Sample_Project")
 		descriptionField = header.index("Description")
@@ -94,13 +99,27 @@ class SampleSheetMiSeqToHiSeq:
 			sdico[sid]["Sample_Name"] = sample[snameField]
 			if splateField:
 				sdico[sid]["Sample_Plate"] = sample[splateField]
+			else:
+				sdico[sid]["Sample_Plate"] = ""
+
 			if swellField:
 				sdico[sid]["Sample_Well"] = sample[swellField]
-			sdico[sid]["I7_Index_ID"] = sample[i7indexIdField]
-			sdico[sid]["index"] = sample[i7indexField]
+			else:
+				sdico[sid]["Sample_Well"] = ""
+			
+			if i7indexIdField:	
+				sdico[sid]["I7_Index_ID"] = sample[i7indexIdField]
+				sdico[sid]["index"] = sample[i7indexField]
+			else:
+				sdico[sid]["I7_Index_ID"] = ""
+				sdico[sid]["index"] = ""
+
 			if i5indexField:
 				sdico[sid]["I5_Index_ID"] = sample[i5indexIdField]
 				sdico[sid]["index2"] = sample[i5indexField]
+			else:
+				sdico[sid]["I5_Index_ID"] = ""
+				sdico[sid]["index2"] = ""
 				
 
 			sampleProject = sample[sprojectField]

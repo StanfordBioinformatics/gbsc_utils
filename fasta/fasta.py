@@ -39,23 +39,46 @@ class ByteIndex:
 		recCoords = self.recBytes[name]
 		start = recCoords[0]
 		length = recCoords[-1] - start
-		rec = self.fh.seek(start)
-		return self.fh.read(length)
-
+		self.fh.seek(start)
+		return self.fh.read(length).strip()
 
 class Rec:
 	def __init__(self,fastaRec):
-		rec  = fastaRec.split("\n")
-		self.header = rec[0]
+		self.rec  = fastaRec.split("\n")
+		self.header = self.rec[0]
 		self.name = self.header.lstrip(">").split()[0]
-		self.seq = "".join(rec[1:]).upper()
+		self.seq = "".join(self.rec[1:]).upper()
 
-	def gcCount(self):
-		return self.seq.count("GC")
+	def getSeq(self):
+		return self.seq
+
+	def getHeader(self):
+		return self.header
+
+	def printRecord(self,name,numChars):
+		bins = list(range(0,len(self.getSeq()) + numChars,numChars))
+		print(self.getHeader())
+		for i in range(len(bins) - 1):
+#			print bins[i],bins[i + 1]
+			print(self.seq[bins[i]:bins[i + 1]])
+
+	def motifCount(self,motif):
+		"""
+		Function : Counts the number of times a sequence of nucleotides is seen in the FASTA record.
+		Args     : motif - str. 
+		"""
+		motif = motif.upper()
+		return self.seq.count(motif)
+	
+	def dinucleotideFreqs(self):
+		combos = ["AA","AC","AG","AT","CC","CA","CT","CT","GG","GA","GC","GT","TT","TA","TC","TG"]
+		dico = {}
+		for i in combos:
+			dico[i] = str(self.motifCount(i))
+		return dico
 		
 if __name__ == "__main__":
 	index = ByteIndex(sys.argv[1])
 	recTxt = index.getRawRecord(sys.argv[2])
 	rec = Rec(recTxt)
 	gcCount = rec.gcCount()
-	print(gcCount)

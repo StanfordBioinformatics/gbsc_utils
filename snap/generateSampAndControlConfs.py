@@ -52,8 +52,8 @@ for line in fh:
 	if not os.path.exists(sampInputsDir):
 		os.mkdir(sampInputsDir)
 	sampResultsDir = os.path.join(runPath,"results")
-	if not os.path.exists(sampResultsDir):
-		os.mkdir(sampResultsDir)
+#	if not os.path.exists(sampResultsDir):
+#		os.mkdir(sampResultsDir)
 	sampTempDir = os.path.join(runPath,"tmp")
 	if not os.path.exists(sampTempDir):
 		os.mkdir(sampTempDir)
@@ -79,8 +79,8 @@ for line in fh:
 	if not os.path.exists(controlInputsDir):
 		os.mkdir(controlInputsDir)
 	controlResultsDir = os.path.join(controlDir,"results")
-	if not os.path.exists(controlResultsDir):
-		os.mkdir(controlResultsDir)
+#	if not os.path.exists(controlResultsDir):
+#		os.mkdir(controlResultsDir)
 	controlTempDir = os.path.join(controlDir,"tmp")
 	if not os.path.exists(controlTempDir):
 		os.mkdir(controlTempDir)
