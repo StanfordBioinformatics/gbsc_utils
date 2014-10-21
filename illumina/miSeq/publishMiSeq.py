@@ -97,6 +97,6 @@ Please refer to the Sample Sheet available at the above link for help relating b
 
 Let me know if you have any questions.
 
-Best,
+Regards,
 Nathaniel
 """.format(run=run,name=name,nummelPath=nummelPath))
