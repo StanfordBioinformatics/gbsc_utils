@@ -1,8 +1,12 @@
 import re
+import gzip
 wsReg = re.compile(r'\s+')
 
 def parse(fqFile):
-	fh = open(fqFile,'r')
+	if fqFile.endswith(".gz"):
+		fh = gzip.open(fqFile,'r')
+	else:
+		fh = open(fqFile,'r')
 	plusLineSeen = False
 	attLine = ""
 	seq = ""

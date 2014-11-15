@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 import time
+import os
 import fastq_utils
 
 NUCLEOTIDES = "ACTGN"
@@ -32,4 +33,4 @@ for key in fileHandles:
 	fh = fileHandles[key]
 	if fh.tell() == 0:
 		fh.close()
-		os.rm(fh.name)
+		os.remove(fh.name)
