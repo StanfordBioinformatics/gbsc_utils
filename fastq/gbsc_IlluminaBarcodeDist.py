@@ -12,6 +12,7 @@ import argparse
 import os
 import glob
 import subprocess
+import gzip
 #from gbsc import confParse 
 
 #config = "/srv/gs1/software/conf/gbsc/global.txt"
@@ -19,12 +20,16 @@ import subprocess
 #pubDir = conf.getValue("illuminaPublished")
 
 def barcodeHist(fqFile,outfile):
+	if fqfile.endswith(".gz"):
+		fh = gzip.open(fqFile,'r')
+	else:
+		fh = open(fqFile,'r')
 	fout = open(outfile,'w')
 	outputHeader = ["Barcode","Freq","Relative_Freq%"]
 	bcDico = {}
-	fh = open(fqFile)
 	count = 0
 	for line in fh:
+		line = str(line) #is a bytes object if opened with gzip
 		line = line.strip()
 		if not line:
 			continue
@@ -60,8 +65,5 @@ outfile = args.outfile
 if not outfile:
 	outfile = fqfile + "_barcodeHist.txt"
 
-if fqfile.endswith("gz"):
-	print("Decompressing {0}".format(fqfile))
-	subprocess.call("gunzip {}".format(fqfile),shell=True)
-barcodeHist(fqfile.rstrip(".gz"),outfile)
+barcodeHist(fqfile,outfile)
 
