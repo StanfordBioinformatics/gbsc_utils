@@ -31,6 +31,7 @@ for line in fh:
 		continue
 	line = line.split("\t")
 	run = line[args.run_field_pos].strip()
+	#print("#{run}#".format(run=run))
 	control = line[args.control_field_pos].strip()
 	sampleRunPath = os.path.join(sampleRunPrefix,run)
 	sampleResultsPath = os.path.join(sampleRunPath,"results")
@@ -43,12 +44,13 @@ for line in fh:
 	if args.rm_results_dirs:
 		if os.path.exists(sampleResultsPath):
 			shutil.rmtree(sampleResultsPath)
-		if os.path.exists(controlResultsPath):
-			shutil.rmtree(controlResultsPath)
+#		if os.path.exists(controlResultsPath):
+#			shutil.rmtree(controlResultsPath)
 
 	if args.purge_inputs_dirs:
 		if os.path.exists(sampleInputsPath):
 			for i in os.listdir(sampleInputsPath):
+				i = os.path.join(sampleInputsPath,i)
 				if i != sampleConf:
 					if os.path.isfile(i):
 						os.remove(i)
@@ -56,6 +58,7 @@ for line in fh:
 						shutil.rmtree(i)
 		if os.path.exists(controlInputsPath):
 			for i in os.listdir(controlInputsPath):
+				i = os.path.join(controlInputsPath,i)
 				if i != controlConf:
 					if os.path.isfile(i):
 						os.remove(i)
@@ -72,7 +75,7 @@ for line in fh:
 #			if dte > refTime:
 #				print("Continuing")
 #				continue  #assume that scoring is still ongoing
-	cmd = "qsub -m a -M nathankw@stanford.edu -V runPeakseqWithoutSnapUpdates.rb --name {run} --control {control} --force".format(run=run,control=control)
+	cmd = "qsub -wd {wd} -m a -M nathankw@stanford.edu -V runPeakseqWithoutSnapUpdates.rb --name {run} --control {control} --force".format(wd=sampleRunPath,run=run,control=control)
 	if args.paired_end:
 		cmd += " --paired-end"
 	if args.rescore_control > 0:

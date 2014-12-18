@@ -50,7 +50,9 @@ htmlBody += "Hello {name},<br><br>Your sequencing and analysis results for sampl
 if lane:
 	htmlBody += ", lane {lane},".format(lane=lane)
 htmlBody += " are ready.<br>"
-htmlBody += """Please log into <a href="https://platform.dnanexus.com/login">DNAnexus</a> to accept the pending data transfer within 30 days of this notice.
+
+
+#htmlBody += """Please log into <a href="https://platform.dnanexus.com/login">DNAnexus</a> to accept the pending data transfer within 30 days of this notice.
 Upon 30 days, the data will be sent to archival storage.<br><br>
 The FASTQ files are in <a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2847217/">Sanger format.</a><br><br>
 

@@ -27,8 +27,10 @@ parser.add_argument('-i','--infile',required=True,help="The input file with para
 parser.add_argument('--header',action="store_true",help="Presence of this option indicates that there is a single field-header line as the first line in --infile.")
 parser.add_argument('-b',required=True,help="The output file for runs that need bam files. Opened in append mode.")
 parser.add_argument('-s',required=True,help="The output file to send runs ready for scoring. Opened in append mode.")
+parser.add_argument('-v','--verbose',action="store_true",help="Turn on verbosity")
 
 args = parser.parse_args()
+verbose = args.verbose
 dico = {}
 bout = open(args.b,'a')
 sout = open(args.s,'a')
@@ -41,6 +43,8 @@ for line in fh:
 		continue
 	line = line.split("\t")
 	line = [x.strip() for x in line]
+	if verbose:
+		print(line)
 	runName = line[0]
 	runPath = os.path.join(sampPrefixPath,runName)
 	print()
@@ -91,7 +95,11 @@ for line in fh:
 	if not controlRep1:
 		continue #bam doesn't exist (logged to bout)
 	controls = controlRep1
-	controlRep2 = line[7]
+	controlRep2 = ""
+	try:
+		controlRep2 = line[7]
+	except IndexError:
+		pass
 	if controlRep2:
 		controlRep2_runName = runPaths.getRunNameFlf(controlRep2)
 		rundir = getRunDirPath(controlRep2_runName)
