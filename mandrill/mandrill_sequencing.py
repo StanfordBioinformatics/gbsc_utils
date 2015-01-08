@@ -7,27 +7,30 @@ from argparse import ArgumentParser
 import random
 import sys,os
 import subprocess
-import confparse
+import json
 
 def processEmailAddrs(txt):
 	"""
-	Funtion : 
+	Funtion : Given a string of putative email addresses that are comma delimited, strips off whitespace from each address and ensures that each address contains an "@"
+            sign, otherwise a ValueError is raised. Creates a set of the addresses so that no address is repeated. 
 	Args    : txt - str. Comma-delimited string of email addresses."
 	Returns : list
 	"""
-	addrs = [x.strip() for x in txt.strip().split(",")]
+	addrs = set([x.strip() for x in txt.split(",")])
 	for i in addrs:
 		if not "@" in i :
 			raise ValueError("Invalid email address '{}'".format(i))
 	return addrs	
 
 
-signaturesFile = os.path.join(os.path.dirname(__file__),"signatures.txt")
-sigs = confparse.parseSignatures(signaturesFile)
+sendersFile = os.path.join(os.path.dirname(__file__),"senders.json")
+zweng="zweng@stanford.edu"
+allSenders = json.load(open(sendersFile,'r'))
 
 parser = ArgumentParser()
 parser.add_argument("--to",required=True,help="One or more comma-delimited recipient email addresses.")
-parser.add_argument("--cc",default="scg-informatics-seq@lists.stanford.edu,gme1@stanford.edu",help="one ore more comma-delimited CC addresses.")
+parser.add_argument("--cc",default="scg-informatics-seq@lists.stanford.edu,gme1@stanford.edu",help="one ore more comma-delimited CC addresses. Default is '%(default)s'.")
+parser.add_argument("-z",action="store_true",help="Presence of this option means to add Ziming Weng's email '{zweng} to the CC list. This is essentially a short cut so you don't have to memorize it.".format(zweng=zweng))
 parser.add_argument("--subject",help="The subject of the email message.")
 parser.add_argument("--add",help="Additional text to add to the top of the message.")
 parser.add_argument("--run-name",required=True,help="The name of the sequencing run.")
@@ -35,12 +38,16 @@ parser.add_argument("--run-name",required=True,help="The name of the sequencing 
 parser.add_argument("--lanes",required=True,nargs="+",help="The lane number(s) to send sequencing results for.")
 #parser.add_argument("--name",required=True,help="The first name of the primary recipient to whom the email message will be addressed.")
 parser.add_argument("-v","--verbose",action="store_true",help="Make verbose")
-parser.add_argument("--signature",required=True,help="A signature key identifying the signature to add to the email.")
+parser.add_argument("--sender",default="nathankw",help="A signature key identifying the signature to add to the email (use your SUNet ID as your signature key; update the file ./signatures.txt for adding new signatures). Default is '%(default)s'.")
+parser.add_argument('--dry-run',action="store_true",help="Presence of this option indicates not to send the email, but do everything else. This option implies the -v option.")
 args = parser.parse_args()
-
+dryRun = args.dry_run
 verbose = args.verbose
-sigKey = args.signature
-signature = sigs[sigKey].replace("\n","<br>")
+if dryRun:
+	verbose = True
+
+senderKey = args.sender
+sender = allSenders[senderKey]
 htmlFile = os.path.join("/tmp",sys.argv[0].split(".py")[0] + "_" + str(random.random()))
 #name = args.name.strip().split()[0]
 run = args.run_name.strip()
@@ -54,6 +61,8 @@ recipients = args.to
 recipients = processEmailAddrs(recipients)
 if ccs:
 	ccs = processEmailAddrs(ccs)
+if args.z:
+	ccs.add(zweng)
 if not subject:
 	subject = "Sequencing Results for {run} are ready".format(run=run)
 #htmlBody = "<!DOCTYPE html><html><body>"
@@ -86,14 +95,15 @@ with open(htmlFile,'r') as h:
 	htmlBody = [x.strip("\n") for x in h]
 	htmlBody = "".join(htmlBody)
 
+signature = sender['signature'].replace("\n","<br />")
 htmlBody += "<br><br>{signature}".format(signature=signature)
 
 if verbose:
 	print(htmlBody)
 mandrill_client = mandrill.Mandrill('GLaCfxVPZNuataEW1fx6RQ')
 message = {}
-message["from_email"] = "nathankw@stanford.edu"
-message["from_name"] = "Nathaniel Watson"
+message["from_email"] = sender['email']
+message["from_name"] = sender['name']
 message["track_opens"] = False
 message["track_clicks"] = False
 message["tags"] = ["scgpm","sequencing results"]
@@ -108,6 +118,7 @@ if ccs:
 
 message["subject"] = subject
 message["html"] = htmlBody
-result = mandrill_client.messages.send(message=message, async=False) #
+if not dryRun:
+	result = mandrill_client.messages.send(message=message, async=False) #
 	#note regarding async parameter:
 	# Defaults to false for messages with no more than 10 recipients; messages with more than 10 recipients are always sent asynchronously, regardless of the value of async.
