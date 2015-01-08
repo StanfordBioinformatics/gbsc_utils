@@ -34,7 +34,9 @@ def parse(fqFile):
 			else:
 				seq += wsReg.sub("",line)
 		if attLine and seq and plusLine and qual:
-			if len(seq) == len(qual):
+			if not len(seq) == len(qual):
+				raise ValueError("Error in file {fqFile}: Sequence length does not match quality length for FASTQ record {attLine}".format(infile=fqFile,attLine=attLine))
+			else:
 				yield attLine,seq,plusLine,qual
 				attLine = ""
 				seq = ""
