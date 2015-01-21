@@ -25,9 +25,9 @@ def parse(fqFile):
 			if attLine:
 				if not plusLineSeen:
 					plusLineSeen = True
-				plusLine = line
-			else:
-				qual += wsReg.sub("",line)
+					plusLine = line
+				else:
+					qual += wsReg.sub("",line)
 		else:
 			if plusLineSeen:
 				qual += wsReg.sub("",line)
@@ -35,7 +35,7 @@ def parse(fqFile):
 				seq += wsReg.sub("",line)
 		if attLine and seq and plusLine and qual:
 			if not len(seq) == len(qual):
-				raise ValueError("Error in file {fqFile}: Sequence length does not match quality length for FASTQ record {attLine}".format(infile=fqFile,attLine=attLine))
+				raise ValueError("Error in file {fqFile}: Sequence length does not match quality length for FASTQ record {attLine}.  \nSequence is: '{seq}\nQual is: '{qual}'".format(fqFile=fqFile,attLine=attLine,seq=seq,qual=qual))
 			else:
 				yield attLine,seq,plusLine,qual
 				attLine = ""
