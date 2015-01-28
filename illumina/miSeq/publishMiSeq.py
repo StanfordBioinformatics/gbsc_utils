@@ -26,7 +26,7 @@ parser.add_argument('--run',required=True,help="Run name (i.e. 140121_SPENSER_00
 parser.add_argument('--conf',default="/srv/gs1/software/gbsc/nathankw/conf/global.txt",help="Path to config file. Default is %(default)s.")
 parser.add_argument('--no-email',action="store_true",help="Presence of this option indicates to not output an email template in the published directory for the run.")
 parser.add_argument('--name',required=True,help="Name of the person you will send the results to.")
-parser.add_argument('--email-only',action="store_true",help="Presence of this option indicates that only the email template is to be generated.")
+parser.add_argument('--no-copy',action="store_true",help="Presence of this option indicates that only the email template and HTML file with the links to the data are to be generated, and no copying of the fastq files from the rundir to the pubdir.")
 args = parser.parse_args()
 
 months = {}
@@ -47,7 +47,7 @@ run = args.run
 noemail = args.no_email
 name = args.name
 confFile = args.conf
-emailOnly = args.email_only
+nocopy = args.no_copy
 ddate = run.split("_")[0]
 yr = "20" + ddate[:2]
 mo = int(ddate[2:4]) #this automatically strips a leading 0
@@ -61,10 +61,10 @@ nummelPub = conf['nummelPub'] #path to published directory as seen from nummel w
 
 src = os.path.join(runDir, run, 'Data', 'Intensities', 'BaseCalls')
 dest = os.path.join(pubDir,yr,moText, run)
+if not os.path.exists(dest):
+	os.mkdir(dest,int("02775",8)) #python requires an int, so I convert from octal to int
 
-if not emailOnly:
-	if not os.path.exists(dest):
-		os.mkdir(dest,int("02775",8)) #python requires an int, so I convert from octal to int
+if not nocopy:
 	sampleSheet = os.path.join(src,ssName)
 	log=makeLogFileName(sampleSheet)
 	subprocess.check_call("rsync -av {sampleSheet} {dest} &> {log}".format(sampleSheet=sampleSheet,dest=dest,log=log),shell=True)
@@ -77,10 +77,11 @@ if not emailOnly:
 	fout.close()
 	for i in glob.glob(os.path.join(dest,"*" + rsyncLogExt)):
 		os.remove(i)
-	cmd = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),"./publish_fastq.sh {dest}".format(dest=dest))
-	subprocess.check_call(cmd,shell=True)
-	fout = open(os.path.join(dest,"HTML_Complete.txt"),'w')
-	fout.close()
+
+cmd = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),"./publish_fastq.sh {dest}".format(dest=dest))
+subprocess.check_call(cmd,shell=True)
+fout = open(os.path.join(dest,"HTML_Complete.txt"),'w')
+fout.close()
 
 if not noemail:
 	fout = open(os.path.join(dest,"email.txt"),'w')

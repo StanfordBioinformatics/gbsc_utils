@@ -2,6 +2,10 @@
 
 src=$1
 dest=$src/index.html
+if [[ -f $dest ]]
+then
+	rm $dest
+fi
 
 echo "<html>" >> $dest
 echo "<head>" >> $dest

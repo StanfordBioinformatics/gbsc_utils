@@ -1,5 +1,6 @@
 
 import sys
+import gzip
 
 def getFastaIdFromHeader(header):
 	"""
@@ -12,7 +13,10 @@ def getFastaIdFromHeader(header):
 
 class ByteIndex:
 	def __init__(self,infile):
-		self.fh = open(infile,'r')
+		if infile.endswith(".gz"):
+			self.fh = gzip.open(infile,'r')
+		else:
+			self.fh = open(infile,'r')
 		self.recBytes = self.getByteStart()
 
 	def getByteStart(self):	
