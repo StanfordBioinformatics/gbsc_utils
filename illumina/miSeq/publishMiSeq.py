@@ -64,11 +64,6 @@ dest = os.path.join(pubDir,yr,moText, run)
 if not os.path.exists(dest):
 	os.mkdir(dest,int("02775",8)) #python requires an int, so I convert from octal to int
 
-cmd = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),"./publish_fastq.sh {dest}".format(dest=dest))
-subprocess.check_call(cmd,shell=True)
-fout = open(os.path.join(dest,"HTML_Complete.txt"),'w')
-fout.close()
-
 if not nocopy:
 	sampleSheet = os.path.join(src,ssName)
 	log=makeLogFileName(sampleSheet)
@@ -82,6 +77,11 @@ if not nocopy:
 	fout.close()
 	for i in glob.glob(os.path.join(dest,"*" + rsyncLogExt)):
 		os.remove(i)
+
+cmd = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),"./publish_fastq.sh {dest}".format(dest=dest))
+subprocess.check_call(cmd,shell=True)
+fout = open(os.path.join(dest,"HTML_Complete.txt"),'w')
+fout.close()
 
 if not noemail:
 	fout = open(os.path.join(dest,"email.txt"),'w')
