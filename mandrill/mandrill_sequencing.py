@@ -9,31 +9,34 @@ import sys,os
 import subprocess
 import json
 
-def processEmailAddrs(txt):
+def processEmailAddrs(addresses):
 	"""
 	Funtion : Given a string of putative email addresses that are comma delimited, strips off whitespace from each address and ensures that each address contains an "@"
             sign, otherwise a ValueError is raised. Creates a set of the addresses so that no address is repeated. 
 	Args    : txt - str. Comma-delimited string of email addresses."
 	Returns : list
 	"""
-	addrs = set([x.strip() for x in txt.split(",")])
-	for i in addrs:
-		if not "@" in i :
+	addresses = set(addresses)
+	for i in addresses:
+		if not i:
+			continue
+		if "@" not in i :
 			raise ValueError("Invalid email address '{}'".format(i))
-	return addrs	
+	return addresses
 
 
 sendersFile = os.path.join(os.path.dirname(__file__),"senders.json")
-zweng="zweng@stanford.edu"
+ZWENG="zweng@stanford.edu"
 allSenders = json.load(open(sendersFile,'r'))
 
 parser = ArgumentParser()
-parser.add_argument("--to",required=True,help="One or more comma-delimited recipient email addresses.")
-parser.add_argument("--cc",default="scg-informatics-seq@lists.stanford.edu,gme1@stanford.edu",help="one ore more comma-delimited CC addresses. Default is '%(default)s'.")
-parser.add_argument("-z",action="store_true",help="Presence of this option means to add Ziming Weng's email '{zweng} to the CC list. This is essentially a short cut so you don't have to memorize it.".format(zweng=zweng))
+parser.add_argument("--to",nargs="+",required=True,help="One or more space-delimited recipient email addresses.")
+parser.add_argument("--cc",nargs="+",default="scg-informatics-seq@lists.stanford.edu",help="one ore more space-delimited CC addresses. Default is '%(default)s'.")
+parser.add_argument("-z",action="store_true",help="Presence of this option means to add Ziming Weng's email '{ZWENG} to the CC list. This is essentially a short cut so you don't have to memorize it.".format(ZWENG=ZWENG))
 parser.add_argument("--subject",help="The subject of the email message.")
-parser.add_argument("--add",help="Additional text to add to the top of the message.")
+parser.add_argument("--add",help="Additional text to add to the top of the message. Any whitespace will be stripped and two newline characters will be added to the end before the standard body of the email is appended.")
 parser.add_argument("--run-name",required=True,help="The name of the sequencing run.")
+parser.add_argument("--archive-run-name",help="Should use if the run name in the archive is different from the run name given to --run-nam.")
 #parser.add_argument("--sample",required=True,help="The name of the sequenced sample.")
 parser.add_argument("--lanes",required=True,nargs="+",help="The lane number(s) to send sequencing results for.")
 #parser.add_argument("--name",required=True,help="The first name of the primary recipient to whom the email message will be addressed.")
@@ -43,6 +46,10 @@ parser.add_argument('--dry-run',action="store_true",help="Presence of this optio
 args = parser.parse_args()
 dryRun = args.dry_run
 verbose = args.verbose
+addText = args.add
+
+archiveRunName = args.archive_run_name
+
 if dryRun:
 	verbose = True
 
@@ -56,13 +63,12 @@ subject = args.subject
 if subject:
 	subject = subject.strip()
 lanes = args.lanes
-ccs = args.cc
+ccs = [x for x in args.cc if x] #ignore empty elements in the list. For example, if the user specifies --cc "", then that will create a list with an empty string.
 recipients = args.to
 recipients = processEmailAddrs(recipients)
-if ccs:
-	ccs = processEmailAddrs(ccs)
+ccs = processEmailAddrs(ccs)
 if args.z:
-	ccs.add(zweng)
+	ccs.update(ZWENG)
 if not subject:
 	subject = "Sequencing Results for {run} are ready".format(run=run)
 #htmlBody = "<!DOCTYPE html><html><body>"
@@ -87,13 +93,19 @@ if not subject:
 #540.421.8820<br>
 #</body></html>
 #"""
-htmlCmd = "python composeResultsEmail.py -o {htmlFile} {run}:{lanes} nw".format(htmlFile=htmlFile,run=run,lanes="".join(lanes))
+htmlCmd = "python composeResultsEmail.py "
+if archiveRunName:
+	htmlCmd += "-a {} ".format(archiveRunName)
+htmlCmd +=  "-o {htmlFile} {run}:{lanes} nw".format(htmlFile=htmlFile,run=run,lanes="".join(lanes))
 if verbose:
 	print(htmlCmd)
 subprocess.check_call(htmlCmd,shell=True)
 with open(htmlFile,'r') as h:
 	htmlBody = [x.strip("\n") for x in h]
 	htmlBody = "".join(htmlBody)
+
+if addText:
+	htmlBody = addText.strip() + "<br /><br />" + htmlBody
 
 signature = sender['signature'].replace("\n","<br />")
 htmlBody += "<br><br>{signature}".format(signature=signature)
