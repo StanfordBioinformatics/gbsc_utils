@@ -16,7 +16,6 @@ def processEmailAddrs(addresses):
 	Args    : txt - str. Comma-delimited string of email addresses."
 	Returns : list
 	"""
-	addresses = set(addresses)
 	for i in addresses:
 		if not i:
 			continue
@@ -26,7 +25,7 @@ def processEmailAddrs(addresses):
 
 
 sendersFile = os.path.join(os.path.dirname(__file__),"senders.json")
-ZWENG="zweng@stanford.edu"
+ZWENG=["zweng@stanford.edu"]
 allSenders = json.load(open(sendersFile,'r'))
 
 parser = ArgumentParser()
@@ -63,7 +62,11 @@ subject = args.subject
 if subject:
 	subject = subject.strip()
 lanes = args.lanes
-ccs = [x for x in args.cc if x] #ignore empty elements in the list. For example, if the user specifies --cc "", then that will create a list with an empty string.
+ccs = args.cc
+if type(ccs) == str: #happens when default is used
+	ccs = list(ccs)
+ccs = [x for x in ccs if x] #ignore empty elements in the list. For example, if the user specifies --cc "", then that will create a list with an empty string.
+ccs = set(ccs)
 recipients = args.to
 recipients = processEmailAddrs(recipients)
 ccs = processEmailAddrs(ccs)
