@@ -3,15 +3,61 @@ import gzip
 import bz2
 wsReg = re.compile(r'\s+')
 
-def index(fqFile):
+
+def parseIlluminaFastqAttLine(attLine):
+	#Illumina FASTQ Att line format (as of CASAVA 1.8 at least):
+	#  @<instrument-name>:<run ID>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos> <read number>:<is filtered>:<control number>:<barcode sequence>
+	header = attLine.strip()
+	header = header.lstrip("@").split(":")
 	dico = {}
-	for key,val in indexparse(fqFile,index=True):
-		dico[key] = val
-	return dico
+	dico["instrument"] = header[0]
+	dico["runId"] = header[1]
+	dico["flowcellId"] = header[2]
+	dico["lane"] = header[3]
+	dico["tile"] = header[4]
+	dico["xpos"] = header[5]
+	ypos,readNumber = header[6].split()
+	dico["ypos"] = ypos
+	dico["readNumber"] = readNumber
+	dico["isFiltered"] = header[7]
+	dico["control"] = header[8]
+	dico["barcode"] = header[9]
+	return dico	
+
+
+class Index:
+	def __init__(self,fqFile):
+		self.fh = open(fqFile,'r')
+		self.index = self._indexReads()	
+
+	def __iter__(self):
+		return iter(self.index)
+
+	def __getitem__(self,seqid):
+		return self.index[seqid]
+
+	def _indexReads(self):
+		dico = {}
+		for key,val in indexparse(self.fh.name,index=True):
+			dico[key] = val
+		return dico
+	
+	def getRec(self,seqid):	
+		start,end = self[seqid]	
+		numBytes = end - start
+		self.fh.seek(start)
+		return self.fh.read(numBytes)
 
 def parse(fqFile):
 	for attLine,seq,plusLine,qual in indexparse(fqFile,index=False):
 		yield attLine,seq,plusLine,qual
+
+def mem(fqFile):
+	dico = {}
+	for attLine,seq,plusLine,qual in indexparse(fqFile,index=False):
+			seqid = getSeqIdFromAttLine(attLine)
+			dico[seqid] = "\n".join([attLine,seq,plusLine,qual]) + "\n"
+	return dico
 
 def indexparse(fqFile,index=True):
 	"""
@@ -68,6 +114,7 @@ def indexparse(fqFile,index=True):
 				plusLine = ""
 				plusLineSeen = False
 				qual = ""
+	fh.close()
 
 def getFastqReadFileHandle(fqFile):
 	if fqFile.endswith(".gz"):
@@ -78,6 +125,11 @@ def getFastqReadFileHandle(fqFile):
 		fh = open(fqFile,'r')
 	return fh
 
+def getSeqIdFromAttLine(attLine):
+	attLine = attLine.lstrip("@")
+	seqid = attLine.split()[0]
+	return seqid
+	
 
 def writeRec(fh,rec):
 	"""
