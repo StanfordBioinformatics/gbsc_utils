@@ -21,7 +21,7 @@ def interleave(iter1, iter2) :
 GZIP="gzip"
 BZ2="bz2"
 
-description = "Interleaves paired-end reads using BioPython. Accepts uncompressed input as well as gzip (file extension must be either .gz or .gzip) and bz2 (file extension must be .bz2) compressed input."
+description = "Interleaves paired-end reads using BioPython. Accepts one forward read file (F) and one reverse read file (R). Reads are interleaved based on the order they appear - F1 with R1, F2 with R2, and so on. Accepts uncompressed input as well as gzip (file extension must be either .gz or .gzip) and bz2 (file extension must be .bz2) compressed input."
 parser = ArgumentParser(description=description)
 parser.add_argument('--forward',required=True,help="The forward reads file.")
 parser.add_argument('--reverse',required=True,help="The reverse reads file.")

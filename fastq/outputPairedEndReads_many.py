@@ -50,7 +50,7 @@ for line in fh:
 		rout = os.path.join(outdir,rout)
 		cmd += "--fout {fout} --rout {rout} ".format(fout=fout,rout=rout)
 	if qsub:
-		cmd = "qsub -v PYTHONPATH={PYTHONPATH} -R y -l h_vmem=10G -m ea -M {notify} -wd {outdir} {cmd}".format(notify=notify,outdir=outdir,cmd=cmd,PYTHONPATH=os.getenv('PYTHONPATH'))
+		cmd = "qsub -v PYTHONPATH={PYTHONPATH} -R y -l h_vmem=22G -m ea -M {notify} -wd {outdir} {cmd}".format(notify=notify,outdir=outdir,cmd=cmd,PYTHONPATH=os.getenv('PYTHONPATH'))
 		print(cmd)
 		subprocess.Popen(cmd,shell=True)
 	else:
