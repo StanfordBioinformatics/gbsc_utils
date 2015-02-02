@@ -64,7 +64,7 @@ if subject:
 lanes = args.lanes
 ccs = args.cc
 if type(ccs) == str: #happens when default is used
-	ccs = list(ccs)
+	ccs = [ccs]
 ccs = [x for x in ccs if x] #ignore empty elements in the list. For example, if the user specifies --cc "", then that will create a list with an empty string.
 ccs = set(ccs)
 recipients = args.to
@@ -96,7 +96,7 @@ if not subject:
 #540.421.8820<br>
 #</body></html>
 #"""
-htmlCmd = "python composeResultsEmail.py "
+htmlCmd = "python emailBody.py "
 if archiveRunName:
 	htmlCmd += "-a {} ".format(archiveRunName)
 htmlCmd +=  "-o {htmlFile} {run}:{lanes} nw".format(htmlFile=htmlFile,run=run,lanes="".join(lanes))
