@@ -1,3 +1,4 @@
+#!/srv/gs1/software/python/python-2.7/bin/python
 from argparse import ArgumentParser
 import fastq_utils as f
 import os
@@ -7,11 +8,18 @@ import os
 
 def compressWriteFh(outfileName,format):
 	"""
-	Args : format - one of [gzip,bz2]
+	Function : Creates an output file handle that is either a regular stream, a GZIP stream, or a BZ2 stream, depending on the value of the format field.
+		         Will add the appropriate compression extension if it doesn't exist already to the outfileName, which for GZIP is '.gzip' and for 
+ 						 BZ2 is '.bz2'.
+	Args     : format - one of [gzip,bz2]
 	"""
 	if format == "gzip":
+		if not outfileName.endswith(".gzip"):
+			outfileName += ".gzip"
 		fout = gzip.open(outfileName,'w')
 	elif compress == "bz2":
+		if not outfileName.endswith(".bz2"):
+			outfileName += ".bz2"
 		fout = bz2.BZFile(outfileName,'w')
 	else:
 		fout = open(outfileName,'w')
@@ -59,26 +67,26 @@ else:
 outfileHandles = {}
 for outfile in outfileNames:
 	if compressFormat:
-		outfileHandles[outfile] = compressWriteFh(outfileNames[i],compressFormat)
+		outfileHandles[outfile] = compressWriteFh(outfileNames[outfile],compressFormat)
 	else:
-		outfileHandles[outfile] = open(outfile,'w')
+		outfileHandles[outfile] = open(outfileNames[outfile],'w')
 
-forwardIndex = f.Index(forward)
-reverseIndex = f.Index(reverse)
+forwardIndex = f.mem(forward)
+reverseIndex = f.mem(reverse)
 
 if not interleavedOut:
 	forwardFout = outfileHandles['fout']
 	reverseFout = outfileHandles['rout']
 	for seqid in forwardIndex:
 		if seqid in reverseIndex:
-			forwardFout.write(forwardIndex.getRec(seqid))
-			reverseFout.write(reverseIndex.getRec(seqid))
+			forwardFout.write(forwardIndex[seqid])
+			reverseFout.write(reverseIndex[seqid])
 	forwardFout.close()
 	reverseFout.close()
 else:
 	interleavedFout = outfileHandles['iout']
 	for seqid in forwardIndex:
 		if seqid in reverseIndex:
-			interleavedFout.write(forwardIndex.getRec(seqid))
-			interleavedFout.write(reverseIndex.getRec(seqid))
+			interleavedFout.write(forwardIndex[seqid])
+			interleavedFout.write(reverseIndex[seqid])
 	interleavedFout.close()
