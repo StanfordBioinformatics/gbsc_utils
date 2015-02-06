@@ -104,7 +104,8 @@ def read_config_file(run_name,publishedRunName=""):
 
     for line in proc.stdout:
         line = line.strip()
-        print(line)
+        if verbose:
+            print(line)
         try:
             param, value = line.split(" ",1)
         except ValueError:
