@@ -62,7 +62,7 @@ nummelPub = conf['nummelPub'] #path to published directory as seen from nummel w
 src = os.path.join(runDir, run, 'Data', 'Intensities', 'BaseCalls')
 dest = os.path.join(pubDir,yr,moText, run)
 if not os.path.exists(dest):
-	os.mkdir(dest,int("02775",8)) #python requires an int, so I convert from octal to int
+	os.makedirs(dest,int("02775",8)) #python requires an int, so I convert from octal to int
 
 if not nocopy:
 	sampleSheet = os.path.join(src,ssName)
