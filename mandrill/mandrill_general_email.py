@@ -2,91 +2,85 @@
 #AUTHOR: Nathaniel Watson
 ###
 
-
 import mandrill
-import confparse
-import os
 from argparse import ArgumentParser
+import random
+import sys,os
+import subprocess
+import json
 
-def processEmailAddrs(txt):
+def processEmailAddrs(addresses):
 	"""
-	Funtion : 
+	Funtion : Given a string of putative email addresses that are comma delimited, strips off whitespace from each address and ensures that each address contains an "@"
+            sign, otherwise a ValueError is raised. Creates a set of the addresses so that no address is repeated. 
 	Args    : txt - str. Comma-delimited string of email addresses."
 	Returns : list
 	"""
-	addrs = [x.strip() for x in txt.strip().split(",")]
-	for i in addrs:
-		if not "@" in i :
+	for i in addresses:
+		if not i:
+			continue
+		if "@" not in i :
 			raise ValueError("Invalid email address '{}'".format(i))
-	return addrs	
+	return addresses
 
 
-ATTACHMENT_LIMIT = 25 * 1024**2 #25MB
-#As of 9/8/2014, Mandrill sets a limit of 25MB for the entire message content sent
-
-signaturesFile = os.path.join(os.path.dirname(__file__),"signatures.txt")
-sigs = confparse.parseSignatures(signaturesFile)
-
+sendersFile = os.path.join(os.path.dirname(__file__),"senders.json")
+ZWENG=["zweng@stanford.edu"]
+allSenders = json.load(open(sendersFile,'r'))
 
 parser = ArgumentParser()
-parser.add_argument("--to",required=True,help="One or more comma-delimited recipient email addresses.")
-parser.add_argument("--cc",help="one ore more comma-delimited CC addresses.")
+parser.add_argument("--body",help="A file that has the contents of the HTML body.")
+parser.add_argument("--to",nargs="+",required=True,help="One or more space-delimited recipient email addresses.")
+parser.add_argument("--cc",default=[],nargs="+",help="one ore more space-delimited CC addresses.")
 parser.add_argument("--subject",required=True,help="The subject of the email message.")
-parser.add_argument("--signature",required=True,help="A signature key identifying the signature to add to the email.")
-parser.add_argument("--add",help="Additional (non-HTML) text to add to the top of the message.")
-parser.add_argument("-i","--infile",help="Input file whose contents are to be added to the email message as plain text.")
-parser.add_argument("--attachments",help="Path to file to attach",nargs = "*")
+parser.add_argument("--add",help="Additional text to add to the top of the message. Any whitespace will be stripped and two newline characters will be added to the end before the standard body of the email is appended.")
+parser.add_argument("-v","--verbose",action="store_true",help="Make verbose")
+parser.add_argument("--sender",default="nathankw",help="A signature key identifying the signature to add to the email (use your SUNet ID as your signature key; update the file ./signatures.txt for adding new signatures). Default is '%(default)s'.")
+parser.add_argument('--dry-run',action="store_true",help="Presence of this option indicates not to send the email, but do everything else. This option implies the -v option.")
 args = parser.parse_args()
+dryRun = args.dry_run
+verbose = args.verbose
+addText = args.add
+htmlBodyFile = args.body
 
-attachments = args.attachments
-text = ""
-if args.add:
-	text = args.add
-infile = args.infile
-sigKey = args.signature
-signature = sigs[sigKey]
-subject = args.subject.strip()
-subject = subject.strip()
+if dryRun:
+	verbose = True
+
+senderKey = args.sender
+sender = allSenders[senderKey]
+subject = args.subject
+if subject:
+	subject = subject.strip()
 ccs = args.cc
+if type(ccs) == str: #happens when default is used
+	ccs = [ccs]
+ccs = [x for x in ccs if x] #ignore empty elements in the list. For example, if the user specifies --cc "", then that will create a list with an empty string.
+ccs = set(ccs)
 recipients = args.to
 recipients = processEmailAddrs(recipients)
-if ccs:
-	ccs = processEmailAddrs(ccs)
-#htmlBody = "<!DOCTYPE html><html><body>"
-#if add:
-#	htmlBody += add
-#htmlBody += """
+ccs = processEmailAddrs(ccs)
 
-if infile:
-	fh = open(infile,'r')
-	text += fh.read()
-text += "\n\n"
-text += signature
+body = ""
+if htmlBodyFile:
+	fh = open(htmlBodyFile,'r') 
+	body = [x.strip("\n") for x in fh]
+	fh.close()
+	body = "".join(body)
+if addText:
+	body = addText.strip() + "<br /><br />" + body
 
+signature = sender['signature'].replace("\n","<br />")
+body += "<br><br>{signature}".format(signature=signature)
+
+if verbose:
+	print(body)
 mandrill_client = mandrill.Mandrill('GLaCfxVPZNuataEW1fx6RQ')
 message = {}
-if attachments:
-	elements = []
-	type = "text/plain"
-	for f in attachments:
-		if not os.path.exists(f):
-			raise OSError("Attachment file '{f}' does not exist!".format(f=f))
-		#check each attachment size. Won't allow any attachment to be >= ATTACHMENT_LIMIT. Note that its still possible that the sumnation of attachment sizes + message content will 
-		# still surpass Mandrill's message size limit of 25MB.
-		fileSize = os.path.getsize(f) #size in bytes
-		if fileSize >= ATTACHMENT_LIMIT:
-			raise OSError("Attachment file '{f}' is too large. The current maximim attachment size per file is {size}".format(f=f,size=ATTACHMENT_SIZE))
-		content = open(f,'r').read()
-		name = os.path.basename(f)
-		elements.append({"type":type,"name":name,"content":content})
-	message["attachments"] = elements
-
-message["text"] = text
-message["from_email"] = "nathankw@stanford.edu"
-message["from_name"] = "Nathaniel Watson"
+message["from_email"] = sender['email']
+message["from_name"] = sender['name']
 message["track_opens"] = False
 message["track_clicks"] = False
-message["tags"] = ["snap","scoring results","chip"]
+#message["tags"] = ["scgpm","sequencing results"]
 message["to"] = []
 
 for recipient in recipients:
@@ -97,8 +91,8 @@ if ccs:
 		message["to"].append({"email": cc,"type":"cc"})
 
 message["subject"] = subject
-#message["html"] = htmlBody
-result = mandrill_client.messages.send(message=message, async=False) #
-print(result)
+message["html"] = body
+if not dryRun:
+	result = mandrill_client.messages.send(message=message, async=False) #
 	#note regarding async parameter:
 	# Defaults to false for messages with no more than 10 recipients; messages with more than 10 recipients are always sent asynchronously, regardless of the value of async.
