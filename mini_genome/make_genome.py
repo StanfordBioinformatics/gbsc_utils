@@ -78,7 +78,7 @@ def map_reads(sai_file, sam_file, reads_file, reference_file):
             subprocess.check_call(cmd, stdout=sam, stderr=devnull, shell=True)
 
 def make_bam(sam_file, bam_file):
-    cmd = "samtools view -bS %s -o %s" % (sam_file, bam_file)
+    cmd = "samtools view -bS %s > %s" % (sam_file, bam_file)
     with open('/dev/null', 'w') as devnull:
         subprocess.check_call(cmd, stderr=devnull, stdout=devnull, shell=True)
 
