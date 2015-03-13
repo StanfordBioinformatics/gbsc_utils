@@ -69,7 +69,7 @@ def getArchivePath(run):
 		if os.path.exists(oldArchiveDir):
 			return oldArchiveDir
 		else:			
-			raise OSError("Archive for run {run} does not exist. Checked old archive path {oldArchiveDir} and new archie path {newArchiveDir}.".format(run=run,oldArchiveDir=oldArchiveDir,newArchiveDir=newArchiveDir))
+			raise OSError("Archive for run {run} does not exist. Checked old archive path {oldArchiveDir} and new archive path {newArchiveDir}.".format(run=run,oldArchiveDir=oldArchiveDir,newArchiveDir=newArchiveDir))
 
 
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 ###
 #AUTHOR: Nathaniel Watson
 ###

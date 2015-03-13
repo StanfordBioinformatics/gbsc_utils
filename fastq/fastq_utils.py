@@ -62,8 +62,9 @@ def mem(fqFile):
 def indexparse(fqFile,index=True):
 	"""
 	This is a generator that steps through each record (in order) in the input FASTQ file. When the index parameter is true, returns the a two item tuple for each record.
-  The first item is the sequence ID (parsed as the first whitespace delimited element on the header line and exluces the leading "@" symbol), and the second item is
-	a two-item tuple being the start and end byte positions of the record.
+  The first item is the sequence ID (parsed as the first whitespace delimited element on the header line and exludes the leading "@" symbol), and the second item is
+	a two-item tuple being the start and end byte positions of the record. If index is not True, then returns a four item tuple containing the attLine, sequence, plus line, and quality strings
+  of the FASTQ record, in that order.
 	"""
 	INDEX=index
 	fh = getFastqReadFileHandle(fqFile)

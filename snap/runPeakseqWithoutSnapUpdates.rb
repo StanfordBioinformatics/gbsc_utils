@@ -2,7 +2,7 @@
 #
 require 'optparse'
 require 'ostruct'
-require 'snap_peakseq_caller'
+#require 'snap_peakseq_caller'
 
 options = OpenStruct.new
 options.rescore_control = 0
@@ -125,13 +125,10 @@ end
 
 cmd += " #{controlConf} #{sampConf}"
 cmd += " 2> #{stderr}"
-puts cmd
 putToLog = "echo #{cmd} >> #{snapLog}"
 system(putToLog)
 if $?.to_i > 0
 	puts "Error running '#{cmd}' - failed with exit code #{$?}"
-else 
-	puts "no"
 end
 
 t = Time.new #current time
