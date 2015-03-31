@@ -4,12 +4,19 @@
 
 
 import re
+import json
 import os
 
-oldRunsArchive = "/srv/gs1/projects/scg/Archive/IlluminaRuns/"
-newRunsArchive = "/srv/gsfs0/projects/seq_center/Illumina/RawDataArchive"
-pubDir = "/srv/gsfs0/projects/seq_center/Illumina/PublishedResults"
-oldPubDir = "/srv/gs1/projects/scg/Archive/IlluminaRuns/" #"/srv/gs1/projects/scg/Archive/IlluminaRuns"
+conf = os.path.join(os.path.dirname(__file__),"conf.json")
+conf = json.load(open(conf,'r'))
+
+runsInProgressDir = conf["runsInProgressDir"]
+oldRunsArchive = conf["oldRunsArchive"]
+newRunsArchive = conf["newRunsArchive"]
+rawArchiveExtension = conf["rawArchiveExtension"]
+analysisArchiveExtension = conf["analysisArchiveExtension"]
+pubDir = conf["pubDir"]
+oldPubDir = conf["oldPubDir"]
 splitLaneReg = re.compile(r'_L\d_')
 getLaneReg = re.compile(r'_(L\d)_')
 
@@ -53,23 +60,21 @@ def getRunYearMonth(run):
 	month = months[digits[2:4]]
 	return (year,month)
 
-def getArchivePath(run):
+def getArchiveDir(run):
 	"""
-	Function : Calculates the absolute directory path to a run in the archive directory. First checks newRunsArchive, then oldRunsArchive (constants).
+	Function : Calculates the archivie directory path for a given run.
 	Args     : run - Run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
 	Returns  : str
-	Raises   : OSError if run can't be located.
 	"""
 	year,month = getRunYearMonth(run)
-	newArchiveDir = os.path.join(newRunsArchive,year,month,run)
-	if os.path.exists(newArchiveDir):
-		return newArchiveDir
+	archiveDir = os.path.join(newRunsArchive,year)
+	if os.path.exists(archiveDir):
+		return archiveDir
 	else:
-		oldArchiveDir = os.path.join(oldRunsArchive,year,month,run)
-		if os.path.exists(oldArchiveDir):
-			return oldArchiveDir
-		else:			
-			raise OSError("Archive for run {run} does not exist. Checked old archive path {oldArchiveDir} and new archive path {newArchiveDir}.".format(run=run,oldArchiveDir=oldArchiveDir,newArchiveDir=newArchiveDir))
+#		oldArchiveDir = os.path.join(oldRunsArchive,year,month,run)
+#		if os.path.exists(oldArchiveDir):
+#			return oldArchiveDir
+		raise OSError("Expected archive path '{archiveDir}' for run {run} does not exist.".format(archiveDir=archiveDir,run=run))
 
 
 
@@ -110,3 +115,28 @@ def getBamFile(rundir,fileName,log=None):
 		if log:
 			log.write(runName + "\t" + rundir + "\t" + lane + "\t" + fileName + "\n")
 		return None
+
+def rawArchiveDone(rundir):
+	"""
+	Function :
+	Args     : rundir - str. The run name (no directory path prefix).
+	"""
+#	year,month = getRunYearMonth(rundir)	
+	archivePath = getArchiveDir(rundir)
+	rawArchive = os.path.join(archivePath,rundir + rawArchiveExtension)
+	if not os.path.exists(rawArchive):
+		return False
+	else:
+		return True
+
+def analysisArchiveDone(rundir):
+	"""
+	Function :
+	Args     : rundir -str. The run name (no directory path prefix).
+	"""
+	archivePath = getArchiveDir(rundir)
+	analysisArchive = os.path.join(archivePath,rundir + analysisArchiveExtension)
+	if not os.path.exists(analysisArchive):
+		return False
+	else:
+		return True

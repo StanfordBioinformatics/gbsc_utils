@@ -1,0 +1,13 @@
+{
+	"runsInProgressDir": "/srv/gsfs0/projects/seq_center/Illumina/RunsInProgress",
+	"analysisDoneDir": "/srv/gsfs0/projects/seq_center/Illumina/RunsInProgress/Completed",
+	"oldPubDir": "/srv/gs1/projects/scg/Archive/IlluminaRuns/",
+  "pubDir": "/srv/gsfs0/projects/seq_center/Illumina/PublishedResults",
+  "oldRunsArchive": "/srv/gs1/projects/scg/Archive/IlluminaRuns/",
+	"newRunsArchive": "/srv/gsfs0/projects/seq_center/Illumina/RawDataArchive",
+	"rawArchiveExtension": ".tgz",
+	"analysisArchiveExtension": ".analysis.tgz",
+	"illuminaSeqCompleteSentinal": "Basecalling_Netcopy_complete.txt",
+	"rawArchiveCompleteSentinal": "Archive_complete.txt"
+}
+
