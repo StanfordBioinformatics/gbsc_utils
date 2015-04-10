@@ -35,6 +35,26 @@ months = {
   "12": "dec"
   }
 
+def parseLane(lane,stripLeadingL=False,stripLeadingZeros=True):
+	"""
+	Args    : lane - str. Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have 
+                   preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
+					  prefixWithL - bool. If True, checkes for the presence of a leading 'L' in lane. If no leading L found, one is added.
+	          stripLeadingZeros - bool. If True, than any zeros found at the start of 'lane' (disregarding a potential leading 'L') and
+	                 the first non-zero integer are removed.  
+	Returns : str.
+	"""
+	lprefix = False
+	if lane[0] == "L":
+		lprefix = True
+		lane = lane.lstrip("L")
+	if stripLeadingZeros:
+		lane = lane.lstrip("0")
+	if stripLeadingL or not lprefix:
+		return lane
+	else:
+		return "L" + lane
+	
 
 def getRunNameFlf(filename):
 	"""
@@ -94,6 +114,21 @@ def getPubPath(run):
 		if not os.path.exists(oldpubdir):
 			raise OSError("Published directory for run {run} does not exist. Checked old published path {oldpubdir} and new published path {pubdir}.".format(run=run,oldpubdir=oldpubdir,pubdir=pubdir))
 	return rundir
+
+def getLaneStatsFile(run,lane):
+	"""
+	Function : Calculates the complete file path to a lane stats file.
+	Args     : run - run name (i.e. 120124_ROCKFORD_00123_FC64DHK).
+					 : lane - Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have 
+                    preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
+	Returns  : str.
+	"""
+	lane = parseLane(lane=lane,stripLeadingZeros=True)
+	runPath = getPubPath(run)
+	statsFile = os.path.join(runPath,run + "_" + lane + "_" + "stats.csv")
+	return statsFile
+	
+	
 
 def getBamFile(rundir,fileName,log=None):
 	"""
