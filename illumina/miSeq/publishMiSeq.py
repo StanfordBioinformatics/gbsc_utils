@@ -12,7 +12,7 @@ import sys
 import subprocess
 import argparse
 import glob
-import confparse
+from gbsc_utils import confparse
 
 rsyncLogExt = "_rsyncLog.txt"
 ssName = "SampleSheet.csv" #samplesheet name
@@ -72,6 +72,7 @@ if not nocopy:
 		log = makeLogFileName(fqFile)
 		subprocess.check_call("rsync -av {fqFile} {dest} &> {log}".format(fqFile=fqFile,dest=dest,log=log),shell=True)
 		##subprocess.check_call will raise CalledProcessError if exit code is non-zero. The CalledProcessError object will have the return code in the returncode attribute.
+		os.remove(fqFile)
 	
 	fout = open(os.path.join(dest,"Rsync_Complete.txt"),'w')
 	fout.close()

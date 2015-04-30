@@ -13,13 +13,15 @@ runName = os.path.basename(args.runname)
 
 conf = os.path.join(os.path.dirname(__file__),"conf.json")
 conf = json.load(open(conf,'r'))
+
 runsInProgressDir = conf["runsInProgressDir"]
 analysisDoneDir = conf["analysisDoneDir"]
 
 runReg = re.compile(r'^\d{4}_')
-rpd = conf["runsInProgressDir"] #Runs Progress Directory
 
+#check if the raw archive of the run is done
 rawDone = runPaths.rawArchiveDone(runName)
+#check if the analysis archive of the run is done
 analysisDone = runPaths.analysisArchiveDone(runName)
 
 runNamePath = os.path.join(runsInProgressDir,runName)
