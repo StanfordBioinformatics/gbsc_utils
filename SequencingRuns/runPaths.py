@@ -6,6 +6,8 @@
 import re
 import json
 import os
+import datetime
+from gbsc_utils import gbsc_utils
 
 conf = os.path.join(os.path.dirname(__file__),"conf.json")
 conf = json.load(open(conf,'r'))
@@ -19,6 +21,8 @@ pubDir = conf["pubDir"]
 oldPubDir = conf["oldPubDir"]
 splitLaneReg = re.compile(r'_L\d_')
 getLaneReg = re.compile(r'_(L\d)_')
+
+modMinThreshold = 30 # modification minutes threshold
 
 months = { 
   "01": "jan",
@@ -34,6 +38,10 @@ months = {
   "11": "nov",
   "12": "dec"
   }
+
+ARCHIVE_STATE_NOT_STARTED = 0
+ARCHIVE_STATE_IN_PROGRESS = 1
+ARCHIVE_STATE_COMPLETE = 2
 
 def parseLane(lane,stripLeadingL=False,stripLeadingZeros=True):
 	"""
@@ -155,23 +163,33 @@ def rawArchiveDone(rundir):
 	"""
 	Function :
 	Args     : rundir - str. The run name (no directory path prefix).
+	Returns  : int. one of [ARCHIVE_STATE_NOT_STARTED, ARCHIVE_STATE_IN_PROGRESS, ARCHIVE_STATE_COMPLETE] 
 	"""
 #	year,month = getRunYearMonth(rundir)	
 	archivePath = getArchiveDir(rundir)
 	rawArchive = os.path.join(archivePath,rundir + rawArchiveExtension)
 	if not os.path.exists(rawArchive):
-		return False
+		return ARCHIVE_STATE_NOT_STARTED
 	else:
-		return True
+		minutesSinceMod = gbsc_utils.getFileAgeMinutes(rawArchive)
+		if minutesSinceMod <= modMinThreshold: #consider in progress
+			return ARCHIVE_STATE_IN_PROGRESS
+		else:
+			return ARCHIVE_STATE_COMPLETE
 
 def analysisArchiveDone(rundir):
 	"""
 	Function :
 	Args     : rundir -str. The run name (no directory path prefix).
+	Returns  : int. One of [ARCHIVE_STATE_NOT_STARTED, ARCHIVE_STATE_IN_PROGRESS, ARCHIVE_STATE_COMPLETE]
 	"""
 	archivePath = getArchiveDir(rundir)
 	analysisArchive = os.path.join(archivePath,rundir + analysisArchiveExtension)
 	if not os.path.exists(analysisArchive):
-		return False
+		return ARCHIVE_STATE_NOT_STARTED
 	else:
-		return True
+		minutesSinceMod = gbsc_utils.getFileAgeMinutes(analysisArchive)
+		if minutesSinceMod <= 30: #consider in progress
+			return ARCHIVE_STATE_IN_PROGRESS
+		else:
+			return ARCHIVE_STATE_COMPLETE
