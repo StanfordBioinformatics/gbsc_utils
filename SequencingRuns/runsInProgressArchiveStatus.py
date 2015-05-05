@@ -6,6 +6,9 @@ import sys
 from argparse import ArgumentParser
 import subprocess
 from gbsc_utils import gbsc_utils
+from gbsc_utils import uhts_utils
+
+#module load rundir/current
 
 conf = os.path.join(os.path.dirname(__file__),"conf.json")
 conf = json.load(open(conf,'r'))
@@ -46,19 +49,26 @@ elif rawAS == doneFlag and aAS == doneFlag:
 elif rawAS == notDoneFlag and not aAS == notDoneFlag:
 	print("nothing_done\t{runName}".format(runName=runName))
 
+
+#Before running the archive script, must check that there is a pipeline run in UHTS with the status 'done', otherwise, the archive won't proceed.
+# Thus, I'll first do that check, and if there isn't one with 'status' set to 'done', I'll set the most recent one to 'done', and if there isn't 
+# any pipeline run at all, I'll just let the program error out.
+
+finished = uhts_utils.getPipelineRuns(runName)[0]
+if not finished:
+	uhts_utils.setLatestPipelineRunToFinished(runName)
+
 if archive:
 	if rawAS == notDoneFlag:
     #running the below command always archives the analysis when doing a raw archive
 		print("Archiving the raw data and the analysis for run {runName}".format(runName=runName))
 		cmd = "run_analysis.rb archive_illumina_run -r {runName} --keep_rundir --verbose".format(runName=runName)
-		popen = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		gbsc_utils.checkPopen(cmd=cmd,popen=popen)
+		gbsc_utils.createSubprocess(cmd)
 	
 	elif aAS == notDoneFlag:
 		print("Archiving the analysis for run {runName}".format(runName=runName))
 		cmd = "run_analysis.rb archive_illumina_run -r {runName} --analysis_only --keep_rundir --verbose".format(runName=runName)
-		popen = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		gbsc_utils.checkPopen(cmd=cmd,popen=popen)
+		gbsc_utils.createSubprocess(cmd)
 
 	
 	
