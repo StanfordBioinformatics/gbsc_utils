@@ -140,7 +140,10 @@ class SampleSheetMiSeqToHiSeq:
 		return des
 
 	def getProjectName(self):
-		pn = self.dico["Header"]["ProjectName"]
+		try:
+			pn = self.dico["Header"]["ProjectName"]
+		except KeyError:
+			return ""
 		return pn
 
 	def getInvestigatorName(self):
