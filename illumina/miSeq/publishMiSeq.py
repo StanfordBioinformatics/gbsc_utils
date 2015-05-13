@@ -22,7 +22,7 @@ def makeLogFileName(infile,extension=rsyncLogExt):
 	return log
 
 parser = argparse.ArgumentParser(description="Publishes a MiSeq run and creates an index.html file for viewing and downloading links. In addition, an email template file is created in the published run directory.")
-parser.add_argument('--run',required=True,help="Run name (i.e. 140121_SPENSER_0046_000000000-A74LR).")
+parser.add_argument('-r','--run',required=True,help="Run name (i.e. 140121_SPENSER_0046_000000000-A74LR).")
 parser.add_argument('--conf',default="/srv/gs1/software/gbsc/nathankw/conf/global.txt",help="Path to config file. Default is %(default)s.")
 parser.add_argument('--no-email',action="store_true",help="Presence of this option indicates to not output an email template in the published directory for the run.")
 parser.add_argument('--name',required=True,help="Name of the person you will send the results to.")

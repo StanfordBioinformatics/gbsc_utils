@@ -7,7 +7,7 @@ import re
 import json
 import os
 import datetime
-from gbsc_utils import gbsc_utils
+import gbsc_utils
 
 conf = os.path.join(os.path.dirname(__file__),"conf.json")
 conf = json.load(open(conf,'r'))

@@ -8,6 +8,7 @@
 	"rawArchiveExtension": ".tgz",
 	"analysisArchiveExtension": ".analysis.tgz",
 	"illuminaSeqCompleteSentinal": "Basecalling_Netcopy_complete.txt",
-	"rawArchiveCompleteSentinal": "Archive_complete.txt"
+	"rawArchiveCompleteSentinal": "Archive_complete.txt",
+	"urlBase": "https://scg-data.stanford.edu/PublishedResults/"
 }
 

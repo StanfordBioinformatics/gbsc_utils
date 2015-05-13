@@ -1,6 +1,6 @@
 from scgpm_lims import Connection
 import subprocess
-from gbsc_utils import gbsc_utils
+import gbsc_utils
 
 #module load rundir/current
 
