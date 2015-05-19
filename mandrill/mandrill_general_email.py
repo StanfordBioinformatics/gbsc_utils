@@ -25,7 +25,6 @@ def processEmailAddrs(addresses):
 
 
 sendersFile = os.path.join(os.path.dirname(__file__),"senders.json")
-ZWENG=["zweng@stanford.edu"]
 allSenders = json.load(open(sendersFile,'r'))
 
 parser = ArgumentParser()
@@ -63,7 +62,7 @@ ccs = processEmailAddrs(ccs)
 body = ""
 if htmlBodyFile:
 	fh = open(htmlBodyFile,'r') 
-	body = [x.strip("\n") for x in fh]
+	body = [x.replace("\n","<br />") for x in fh]
 	fh.close()
 	body = "".join(body)
 if addText:
