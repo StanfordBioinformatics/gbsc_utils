@@ -34,7 +34,7 @@ parser.add_argument("--cc",default=[],nargs="+",help="one ore more space-delimit
 parser.add_argument("--subject",required=True,help="The subject of the email message.")
 parser.add_argument("--add",help="Additional text to add to the top of the message. Any whitespace will be stripped and two newline characters will be added to the end before the standard body of the email is appended.")
 parser.add_argument("-v","--verbose",action="store_true",help="Make verbose")
-parser.add_argument("--sender",default="nathankw",help="A signature key identifying the signature to add to the email (use your SUNet ID as your signature key; update the file ./signatures.txt for adding new signatures). Default is '%(default)s'.")
+parser.add_argument("--sender",required=True,help="A signature key identifying the signature to add to the email (use your SUNet ID as your signature key; update the file ./signatures.txt for adding new signatures).")
 parser.add_argument('--dry-run',action="store_true",help="Presence of this option indicates not to send the email, but do everything else. This option implies the -v option.")
 args = parser.parse_args()
 dryRun = args.dry_run
