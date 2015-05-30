@@ -8,6 +8,7 @@ import json
 import os
 import datetime
 import gbsc_utils
+import glob
 
 conf = os.path.join(os.path.dirname(__file__),"conf.json")
 conf = json.load(open(conf,'r'))
@@ -106,21 +107,29 @@ def getArchiveDir(run):
 
 
 
-def getPubPath(run):
+def getPubPath(run,lane=None):
 	"""
-	Function : Calculates the absolute directory path to a run in the published results directory.
+	Function : Calculates the absolute directory path to a run in the published results directory. If the lane argument is not None, then the returned directory 
+						 path includes the lane directory.
 	Args     : run - run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
+						 lane - Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have
+                    preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
 	Returns  : str
 	Raises   : OSError if run can't be located.
 	"""
 	year,month = getRunYearMonth(run)
 	pubdir = os.path.join(pubDir,year,month,run)
+	if lane:
+		lane = parseLane(lane)
 	rundir = pubdir
 	if not os.path.exists(pubdir):
 		oldpubdir = os.path.join(oldPubDir,year,month,run)	
 		rundir = oldpubdir
 		if not os.path.exists(oldpubdir):
 			raise OSError("Published directory for run {run} does not exist. Checked old published path {oldpubdir} and new published path {pubdir}.".format(run=run,oldpubdir=oldpubdir,pubdir=pubdir))
+	if lane:
+		lanedir = os.path.join(rundir, "L" + lane)
+		return lanedir
 	return rundir
 
 def getLaneStatsFile(run,lane):
@@ -158,6 +167,32 @@ def getBamFile(rundir,fileName,log=None):
 		if log:
 			log.write(runName + "\t" + rundir + "\t" + lane + "\t" + fileName + "\n")
 		return None
+
+def findAllBams(run,lane):
+	"""
+	Args : run  - str. run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
+			   lane - Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have
+      					preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
+	"""
+	
+	lane = parseLane(lane=lane,stripLeadingZeros=True)
+	runPath = getPubPath(run,lane=lane)
+	globPat = os.path.join(runPath,"*_pf.bam*")
+	bams =  glob.glob(globPat)
+	return bams
+
+def findAllFastqs(run,lane):	
+	"""
+	Args : run  - str. run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
+			   lane - Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have
+      					preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
+	"""
+	
+	lane = parseLane(lane=lane,stripLeadingZeros=True)
+	runPath = getPubPath(run,lane=lane)
+	globPat = os.path.join(runPath,"*_pf.fastq*")
+	fastqs =  glob.glob(globPat)
+	return fastqs
 
 def rawArchiveDone(rundir):
 	"""

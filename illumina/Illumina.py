@@ -17,13 +17,13 @@ class SampleSheetMiSeqToHiSeq:
 			 The value of each key is a list where each element is a line (stripped of white-space) that belongs to that that particular section.
 		"""
 		wsReg = re.compile("\s")
-		reg = re.compile(r'^\[\w+\]$')
+		reg = re.compile(r'^\[\w+\]')
 		dico = {}
 		dico["extra"] = []
 		fh = open(self.SampleSheet,'r')
 		for line in fh:
 			line = line.strip()
-			if not line:
+			if not line or not line.strip(","): #gets rid of empty lines and lines with nothing but commas
 				continue
 			hit = reg.match(line)
 			if hit:
@@ -39,7 +39,13 @@ class SampleSheetMiSeqToHiSeq:
 	def __formatHeader(self):
 		hdico = {} #header dict
 		for h in self.dico['Header']:
-			key,val = h.split(",")
+			try:
+				line = h.split(",")
+				key = line[0]
+				val = line[1]
+			except ValueError: #empty value
+				key = h
+				val = ""
 			hdico[key] = val
 		self.dico['Header'] = hdico
 	

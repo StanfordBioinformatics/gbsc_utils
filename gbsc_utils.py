@@ -2,20 +2,24 @@ import subprocess
 import os
 import datetime
 
-def createSubprocess(cmd):
+def createSubprocess(cmd,checkRetcode=True):
 	"""
 	Function : Creates a subprocess via a call to subprocess.Popen with the argument 'shell=True', and pipes stdout and stderr.
              For any non-zero return code, an Exception is raised along with the command, stdout, stderr, and the returncode.
 	Args     : cmd   - str. The command line for the subprocess wrapped in the subprocess.Popen instance. If given, will be printed to stdout when there is an error in the subprocess.
+						 checkRetcode - bool.
 	Returns  : A two-item tuple containing stdout and stderr, respectively.
 	"""
 	popen = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-	stdout,stderr = popen.communicate()
-	retcode = popen.returncode
-	if retcode:
-		#below, I'd like to raise a subprocess.SubprocessError, but that doens't exist until Python 3.3.
-		raise Exception("subprocess command '{cmd}' failed with returncode '{returncode}'.\nstdout is: {stdout}.\nstderr is: {stderr}.".format(cmd=cmd,returncode=retcode,stdout=stdout,stderr=stderr))
-	return stdout,stderr
+	if checkRetcode:
+		stdout,stderr = popen.communicate()
+		retcode = popen.returncode
+		if retcode:
+			#below, I'd like to raise a subprocess.SubprocessError, but that doens't exist until Python 3.3.
+			raise Exception("subprocess command '{cmd}' failed with returncode '{returncode}'.\nstdout is: {stdout}.\nstderr is: {stderr}.".format(cmd=cmd,returncode=retcode,stdout=stdout,stderr=stderr))
+		return stdout,stderr
+	else:
+		return popen
 
 
 def getFileAgeMinutes(infile):
