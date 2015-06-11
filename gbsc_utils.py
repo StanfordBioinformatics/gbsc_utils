@@ -1,6 +1,7 @@
 import subprocess
 import os
 import datetime
+import time
 
 def createSubprocess(cmd,checkRetcode=True):
 	"""
@@ -35,3 +36,8 @@ def getFileAgeMinutes(infile):
 	seconds = diff.total_seconds()
 	minutes = seconds/60
 	return minutes
+
+def getCurTime():
+	epochTime  = time.time()
+	t = datetime.datetime.fromtimestamp(epochTime)
+	return "{year}-{month}-{day}.{second}".format(year=t.year,month=t.month,day=t.day,second=t.second)

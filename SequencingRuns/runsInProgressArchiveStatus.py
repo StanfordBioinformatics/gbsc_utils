@@ -30,7 +30,7 @@ miseqReg = re.compile(r'.*SPENSER.*')
 parser = ArgumentParser(description="Make sure to have the following environment module loaded: gbsc/archiving_runs/uhts. Outputs the archive status of a run as being one of 'in_progress','raw_only', or 'all_done'. In addition, the program will, upon request, perform an archive of the raw run and the analysis, move the rundir from {runsInProgressDir} to {runsCompletedDir}, and set the status of the run in UHTS to archived. Note that a run status is set to 'in_progress' when either the raw archive, the analysis archive, or both have a modification timestamp dated within the past {modMinThreshold} minutes, and such runs will not be eligible for archiving or moving.".format(runsInProgressDir=runsInProgressDir,runsCompletedDir=runsCompletedDir,modMinThreshold=runPaths.modMinThreshold))
 parser.add_argument("-r","--runname",required=True,help="The name of an Illumina sequencing run. Directory path may be supplied but will be removed.")
 parser.add_argument("-m","--move",action="store_true",help="Presence of this option indicates to move the run directory specified in -r to the runs completed folder {completed} if the raw data and analysis archiving is done. If an archive-in-progress is detected, nothing will happen".format(completed=runsCompletedDir))
-parser.add_argument("-a","--archive",action="store_true",help="Presence of this option indicates to archive the analysis of a run if the analysis hasn't been archived yet. This step doesn't check the LIMS, but instead takes the lazy approach and assumes that the run has an analysis and that the analysis has finished. Make sure to have the environment module 'illumina_pipeline/production' loaded in order to perform this step!")
+parser.add_argument("-a","--archive",action="store_true",help="Presence of this option indicates to archive that which hasn't been archive yet (i.e the raw data and the analysis). This step doesn't check the LIMS, but instead takes the lazy approach and assumes that the run has an analysis and that the analysis has finished. Make sure to have the environment module 'illumina_pipeline/production' loaded in order to perform this step!")
 parser.add_argument("-c","--check-finished",action="store_true",help="Presence of this option indicates to check if the run has a finished pipeline run in UHTS. If not, then it will set the latest pipeline run (the one with the largest pipeline run id) to finished in UHTS, granted that there is at least one pipeline run.")
 args = parser.parse_args()
 runName = os.path.basename(args.runname)
@@ -40,7 +40,7 @@ doArchive = args.archive
 checkFinished = args.check_finished
 
 
-MISEQ = miseqReg.match(runName)
+#MISEQ = miseqReg.match(runName)
 
 #check if the raw archive of the run is done
 rawAS = runPaths.rawArchiveDone(runName) #rawAS = rawArchiveStatus
@@ -71,9 +71,9 @@ elif rawAS == notDoneFlag and aAS == notDoneFlag:
 finishedPipelineRuns,unfinishedPipelineRuns = uhts_utils.getPipelineRuns(runName)
 allPipelineRuns = finishedPipelineRuns.extend(unfinishedPipelineRuns)
 
-if allPipelineRuns: #if none, could be a MiSeq Run as currently those aren't analyzed through the pipeline
+if allPipelineRuns: #if none, could be a MiSeq Run as prior to May 20, 2015, those werent analyzed through the APF pipeline.
 	if checkFinished:
-		if not finished and not MISEQ: #miseqs don't currently have a pipeline run
+		if not finishedPipelineRuns:
 			uhts_utils.setLatestPipelineRunToFinished(runName) #uses endrun.py in rundir
 
 
@@ -99,7 +99,7 @@ if doArchive:
 		else:
 			print("No pipelines to archive for run {runName}".format(runName=runName))
 
-	if (rawAS == doneFlag and aAS == doneFlag) or (rawAS == doneFlag and MISEQ): 
+	if (rawAS == doneFlag and aAS == doneFlag) or (rawAS == doneFlag and not allPipelineRuns): 
 		#then make sure that in the LIMS, the archive flag is set
 		setRunToArchived(runName)
 
@@ -107,7 +107,7 @@ if doArchive:
 	
 runNamePath = os.path.join(runsInProgressDir,runName)
 #move to Completed folder if all archiving is done:
-if rawAS == doneFlag and (aAS == doneFlag or MISEQ) and move:
+if rawAS == doneFlag and (aAS == doneFlag or not allPipelineRuns) and move:
 	dest = os.path.join(runsCompletedDir,runName)
 	print("Moving run {run} to {dest}.".format(run=runName,dest=dest))
 	try:
