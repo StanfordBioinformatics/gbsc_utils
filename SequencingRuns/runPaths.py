@@ -147,16 +147,15 @@ def getLaneStatsFile(run,lane):
 	
 	
 
-def getBamFile(rundir,fileName,log=None):
+def getBamFilePath(rundir,fileName):
 	"""
 	Function : Tries to find a BAM file in a given run directory in the given rundir. The main purpose of this function is to check for the BAM file in two places: first, immediately
 					   within the run directory (where they used to be back in 2012), second, within a lane subdirectory.
 	Args     : rundir - path to the run directory (i.e. could be a published path or an archive path)
-						 fileName - the name of the BAM file to look for (no directory path prefix)
-						 log - a file handle open for writing. Used to track which BAMS are missing so that they can be later created if need-be.
+						 fileName - the name of the BAM file to look for (no directory path prefix) in the run directory specified by the rundir argument.
 	"""
 	runName = os.path.basename(rundir)	
-	lane = getLaneReg.search(fileName).groups()[0]
+	lane = getLaneReg.search(fileName).groups()[0] #i.e. L1
 	path1 = os.path.join(rundir,fileName)
 	if os.path.exists(path1):
 		return path1
@@ -164,8 +163,6 @@ def getBamFile(rundir,fileName,log=None):
 	if os.path.exists(path2):
 		return path2
 	else:
-		if log:
-			log.write(runName + "\t" + rundir + "\t" + lane + "\t" + fileName + "\n")
 		return None
 
 def findAllBams(run,lane):

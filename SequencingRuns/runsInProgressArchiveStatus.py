@@ -69,7 +69,7 @@ elif rawAS == notDoneFlag and aAS == notDoneFlag:
 # any pipeline run at all, I'll just let the program error out.
 
 finishedPipelineRuns,unfinishedPipelineRuns = uhts_utils.getPipelineRuns(runName)
-allPipelineRuns = finishedPipelineRuns.extend(unfinishedPipelineRuns)
+allPipelineRuns = finishedPipelineRuns + unfinishedPipelineRuns
 
 if allPipelineRuns: #if none, could be a MiSeq Run as prior to May 20, 2015, those werent analyzed through the APF pipeline.
 	if checkFinished:
@@ -95,7 +95,7 @@ if doArchive:
 			print("Archiving the analysis for run {runName}".format(runName=runName))
 			cmd = "run_analysis.rb archive_illumina_run -r {runName} --analysis_only --keep_rundir --verbose".format(runName=runName)
 			gbsc_utils.createSubprocess(cmd)
-			setRunToArchived(runName)
+			#setRunToArchived(runName) #not necessary since run_analysis.rb will set the flag
 		else:
 			print("No pipelines to archive for run {runName}".format(runName=runName))
 
