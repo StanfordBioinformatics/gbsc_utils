@@ -32,7 +32,7 @@ parser.add_argument("--body",help="A file that has the contents of the HTML body
 parser.add_argument("--to",nargs="+",required=True,help="One or more space-delimited recipient email addresses.")
 parser.add_argument("--cc",default=[],nargs="+",help="one ore more space-delimited CC addresses.")
 parser.add_argument("--subject",required=True,help="The subject of the email message.")
-parser.add_argument("--add",help="Additional text to add to the top of the message. Any whitespace will be stripped and two newline characters will be added to the end before the standard body of the email is appended.")
+parser.add_argument("--add",help="Additional text to add to the top of the message. Any before and after whitespace will be stripped. Any newlines present will then be converted to HTML line breaks.  Two newline characters will be added to the end before the standard body of the email is appended.")
 parser.add_argument("-v","--verbose",action="store_true",help="Make verbose")
 parser.add_argument("--sender",required=True,help="A signature key identifying the signature to add to the email (use your SUNet ID as your signature key; update the file ./signatures.txt for adding new signatures).")
 parser.add_argument('--dry-run',action="store_true",help="Presence of this option indicates not to send the email, but do everything else. This option implies the -v option.")
@@ -67,6 +67,7 @@ if htmlBodyFile:
 	body = "".join(body)
 if addText:
 	body = addText.strip() + "<br /><br />" + body
+	body = body.replace("\n","<br />")
 
 signature = sender['signature'].replace("\n","<br />")
 body += "<br><br>{signature}".format(signature=signature)
