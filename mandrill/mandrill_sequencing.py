@@ -47,7 +47,8 @@ parser.add_argument('--dry-run',action="store_true",help="Presence of this optio
 args = parser.parse_args()
 dryRun = args.dry_run
 verbose = args.verbose
-addText = args.add
+addText = "Notice: The mapping is now using the latest version 0.7.12 of BWA. This version doesn't include our custom option to map only a certain number of bases. As a result, the entire length of the reads are used in the mapping.\n\n"
+addText = += args.add
 
 archiveRunName = args.archive_run_name
 
