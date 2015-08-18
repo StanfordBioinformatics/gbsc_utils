@@ -2,7 +2,7 @@
 #AUTHOR: Nathaniel Watson
 ###
 
-from illumina.Illumina import SampleSheetMiSeqToHiSeq
+from gbsc_utils.illumina.Illumina import SampleSheetMiSeqToHiSeq
 import argparse
 
 

@@ -5,8 +5,8 @@ import os
 import sys
 from argparse import ArgumentParser
 import subprocess
-import gbsc_utils
-from uhts import uhts_utils
+from gbsc_utils import gbsc_utils
+from gbsc_utils.uhts import uhts_utils
 
 
 def setRunToArchived(runName):
