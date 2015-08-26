@@ -1,14 +1,24 @@
 import sys
 import re
+import collections
 
 class SampleSheetMiSeqToHiSeq:
 	"""Parses a SampleSheet in the MiSeq format. The MiSeq SampleSheet has several sections, with each denoted by a section header within brackets (i.e. [Header]). Sections include [Header],
 		 [Reads], [Settings, and [Data]. 
 	"""
-	hiseq_header = "FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,Project"
+	#Below are the SampleSheet fields that make up the Data section, as documentedin the v2.17 UG:
+	SAMPLE_PROJECT = "Sample_Project"
+	LANE = "Lane"
+	SAMPLE_ID = "Sample_ID"
+	SAMPLE_NAME = "Sample_Name"
+	INDEX = "index"
+	INDEX2 = "index2"
+	#End SS fields.
+	#Note that the SampleSheet can have other fields in the Data section that aren't documented in the UG.
+	
 	def __init__(self,samplesheet):
 		self.SampleSheet = samplesheet
-		self.dico = self.__parse()
+		self.ss = self.__parse()
 		self.__formatHeader()
 		self.__formatData()
 
@@ -22,7 +32,7 @@ class SampleSheetMiSeqToHiSeq:
 		dico["extra"] = []
 		fh = open(self.SampleSheet,'r')
 		for line in fh:
-			line = line.strip()
+			line = line.strip("\n")
 			if not line or not line.strip(","): #gets rid of empty lines and lines with nothing but commas
 				continue
 			hit = reg.match(line)
@@ -37,8 +47,14 @@ class SampleSheetMiSeqToHiSeq:
 	
 
 	def __formatHeader(self):
+		"""
+		Function : Each header line (within the Header section) has a key and a value. The key is the first comma-delimited field, and
+							 the value is the second. The value may be empty. The parsed key will be stored into a dict along with the parsed value as
+							 the key's value. The key's value will be the empty string if not value was parsed from the header line.
+							 The dict will be set as the value of self's dico attribute.
+		"""	
 		hdico = {} #header dict
-		for h in self.dico['Header']:
+		for h in self.ss['Header']:
 			try:
 				line = h.split(",")
 				key = line[0]
@@ -47,137 +63,57 @@ class SampleSheetMiSeqToHiSeq:
 				key = h
 				val = ""
 			hdico[key] = val
-		self.dico['Header'] = hdico
+		self.ss['Header'] = hdico
 	
 	def __formatData(self):
 		"""
-		Formats each sample in the [Data] section of self.__parse() into a dictionary whose key is the Sample_ID and whose value is a dictionary containing the field headers in the header line of the [Data] section,
-		which are (in order): Sample_ID,Sample_Name,Sample_Plate,Sample_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description.
+		Formats each sample in the [Data] section of self.__parse() into a collection.namedtubple whose attributes
+		are the field names in the Header section of the sample sheet.
 		"""
-		header = self.dico['Data'].pop(0).split(",")
-		if header[0] != "Sample_ID":
-			raise Exception("Excpeted field header as first line in Data section, instead found {header}".format(header=",".join(header)))
-	
-		sidField = header.index("Sample_ID")
-		snameField = header.index("Sample_Name")
-		splateField = False
-		try:
-			splateField = header.index("Sample_Plate")
-		except ValueError:
-			pass
-
-		swellField = False
-		try: 
-			swellField = header.index("Sample_Well")
-		except ValueError:
-			pass
-		
-		i7indexIdField = False
-		try:
-			i7indexIdField = header.index("I7_Index_ID")
-		except ValueError:
-			pass
-
-		i7indexField = False
-		if i7indexIdField:	
-			i7indexField = header.index("index")
-		
-		i5indexIdField = False
-		try:
-			i5indexIdField = header.index("I5_Index_ID") 
-		except ValueError:
-			pass
-
-		i5indexField = False
-		if i5indexIdField:
-			i5indexField = header.index("index2")
-
-		sprojectField = header.index("Sample_Project")
-		descriptionField = header.index("Description")
-		
-
-		sdico = {} #sample dict
-		for sample in self.dico['Data']:
-			sample = sample.split(",")
-			sid = sample[sidField]
-			sdico[sid] = {}
-			sdico[sid]["Sample_ID"] = sid
-			sdico[sid]["Sample_Name"] = sample[snameField]
-			if splateField:
-				sdico[sid]["Sample_Plate"] = sample[splateField]
-			else:
-				sdico[sid]["Sample_Plate"] = ""
-
-			if swellField:
-				sdico[sid]["Sample_Well"] = sample[swellField]
-			else:
-				sdico[sid]["Sample_Well"] = ""
-			
-			if i7indexIdField:	
-				sdico[sid]["I7_Index_ID"] = sample[i7indexIdField]
-				sdico[sid]["index"] = sample[i7indexField]
-			else:
-				sdico[sid]["I7_Index_ID"] = ""
-				sdico[sid]["index"] = ""
-
-			if i5indexField:
-				sdico[sid]["I5_Index_ID"] = sample[i5indexIdField]
-				sdico[sid]["index2"] = sample[i5indexField]
-			else:
-				sdico[sid]["I5_Index_ID"] = ""
-				sdico[sid]["index2"] = ""
-				
-
-			sampleProject = sample[sprojectField]
-			if not sampleProject:
-				sampleProject = ""
-			sdico[sid]["Sample_Project"] = sampleProject
-
-			description = sample[descriptionField]
-			if not description:
-				description = ""
-			sdico[sid]["Description"] = description
-
-		self.dico['Data'] = sdico
-
+		header = self.ss['Data'].pop(0)
+		print(header)
+		SSEntry = collections.namedtuple("SSEntry",header)
+		print(self.ss["Data"])
+		newData = []
+		newData = map(SSEntry._make,[x.split(",") for x in self.ss['Data']])
+		self.ss['Data'] = newData
 
 	def getDescription(self):
-		des = self.dico["Header"]["Description"]
+		des = self.ss["Header"]["Description"]
 		return des
 
 	def getProjectName(self):
 		try:
-			pn = self.dico["Header"]["ProjectName"]
+			pn = self.ss["Header"]["ProjectName"]
 		except KeyError:
 			return ""
 		return pn
 
 	def getInvestigatorName(self):
-		iname = self.dico["Header"]["InvestigatorName"]
+		iname = self.ss["Header"]["InvestigatorName"]
 		return iname
 
 	def	convert(self,outfile):
 		"""This is the step that performs the actual MiSeq-to-HiSeq SampleSheet conversion. All samples are treated as non-control since it's not possible to determine this from the MiSeq SampleSheet.
 		  	Therefore, be sure to manually modify the control field in the generated HiSeq SampleSheet file if any should be marked as control.
 		"""
+		bcl2fastq_1_8_4_header = "FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,Project"
 		fout = open(outfile,'w')
-		fout.write(self.hiseq_header + "\n")
-		for sampleName in sorted(self.dico['Data']):
-			sample = self.dico['Data'][sampleName]
+		fout.write(bcl2fastq_1_8_4_header + "\n")
+		for sample in self.ss['Data']:
 			fcid = "" #when running configureBclToFastq.p[, defaults to that in config.xml file in BaseCalls dir
 			fout.write(fcid + ",")
-			lane  = "1"
+			try:
+				lane = sample.lane
+			except AttributeError:
+				lane = "1" #MiSeq
 			fout.write(lane + ",")
-			sid = sample["Sample_ID"]
-			fout.write(sid + ",")
+			fout.write(sample.Sample_ID + ",")
 			sampleRef = ""
 			fout.write(sampleRef + ",")
-			index = sample["index"]
+			index = sample.index
 			index2 = False
-			try:
-				index2 = sample["index2"]
-			except KeyError:
-				pass
+			index2 = sample.index2
 			if index2:
 				index += "-" + index2
 			del index2
@@ -188,10 +124,10 @@ class SampleSheetMiSeqToHiSeq:
 			fout.write(control + ",")
 			recipe = ""
 			fout.write(recipe + ",")
-			operator = self.getInvestigatorName()
+			operator = ""
+			#operator = self.getInvestigatorName()
 			fout.write(operator + ",")
-			project = self.getProjectName()
-			fout.write(project)
+			fout.write(sample.Sample_Project)
 			fout.write("\n")
 		fout.close()
 
