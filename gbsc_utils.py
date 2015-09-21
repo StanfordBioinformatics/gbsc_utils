@@ -52,4 +52,4 @@ def getFileAgeMinutes(infile):
 def getCurTime():
 	epochTime  = time.time()
 	t = datetime.datetime.fromtimestamp(epochTime)
-	return "{year}-{month}-{day}.{second}".format(year=t.year,month=t.month,day=t.day,second=t.second)
+	return "{year}-{month}-{day}.{hour}.{minute}.{second}".format(year=t.year,month=t.month,day=t.day,hour=t.hour,minute=t.minute,second=t.second)
