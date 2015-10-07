@@ -10,7 +10,7 @@ description = "Merges FASTQ files by sample that were created by bcl2fastq 1.8.4
 parser = ArgumentParser(description=description)
 parser.add_argument('-s','--sample-sheet',required=True,help="The sample sheet that was used for the demultiplexing.")
 parser.add_argument('-b','--bcl2fastq-output-dir',required=True,help="The output directory used during the demultiplexing.")
-parser.add_argument('-o','--outdir',required=True,help="The output directory to contain the merged FASTQ files."
+parser.add_argument('-o','--outdir',required=True,help="The output directory to contain the merged FASTQ files.")
 parser.add_argument('-l','--lanes',type=int,nargs="+",help="The lane(s) whose FASTQs need merging. Enteral mutiple with a space in-between.")
 
 args = parser.parse_args()
