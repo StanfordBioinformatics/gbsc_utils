@@ -6,7 +6,6 @@ import csv
 import re
 import glob
 from pprint import pprint
-import dxpy
 
 class SampleSheetException(Exception):
 	pass
@@ -130,7 +129,7 @@ class V1:
 			#            structure: Undetermined_indices/Sample_lane1.	
 			# 
 			# Since we only care and support case 1, then we won't implement support for case 2.
-		if not row:
+		if not rows:
 			raise Exception("Error: This program does not support a sample sheet without any samples.")
 		return rows
 			
