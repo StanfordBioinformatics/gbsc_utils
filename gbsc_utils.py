@@ -3,7 +3,7 @@ import os
 import datetime
 import time
 
-def createSubprocess(cmd,pipeStdout=True,checkRetcode=True):
+def createSubprocess(cmd,pipeStdout=False,checkRetcode=True):
 	"""
 	Function : Creates a subprocess via a call to subprocess.Popen with the argument 'shell=True', and pipes stdout and stderr. Stderr is always  piped, but stdout can be turned off.
              If the argument checkRetcode is True, which it is by defualt, then for any non-zero return code, an Exception is
