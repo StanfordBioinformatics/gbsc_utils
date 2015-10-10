@@ -284,6 +284,7 @@ report_text_body += result_table
 report_text_body += "</ul>\n"
 
 report_text_foot = """
+<p>When downloading the datasets, don't use FireFox as it doesn't recognize all of the file extensions (last tested on version 41.0.1). We recommend using Google Chrome.</p>
 <p>These pages contain:</p>
 <ul>
   <li>Links for you to download your sequencing results (you are encouraged to do so as soon as possible).</li>
