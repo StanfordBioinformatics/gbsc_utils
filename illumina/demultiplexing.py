@@ -10,6 +10,9 @@ from pprint import pprint
 class SampleSheetException(Exception):
 	pass
 
+class UnknownSampleError(Exception):
+	pass
+
 
 def getFlowCellId(runName):
 	"""
@@ -63,6 +66,7 @@ class V1:
 		self.runName = runName
 		self.outdir = bcl2fastqOutputDir
 		self.sampleSheet = self.parseSampleSheet(sampleSheet)
+		self.samples = self._setSamples()
 		print(self.sampleSheet)
 
 	def __iter__(self):
@@ -181,7 +185,9 @@ class V1:
 					row[self.LANE] = lane
 					row[self.SAMPLE_ID] = self.createSampleId(lane=lane)
 					row[self.SAMPLE_REF] = ""
-					row[self.INDEX] = ""
+					row[self.INDEX] = self.NO_INDEX
+					#As stated in the bcl2fastq v1.8.4 UG: In the case of non-multiplexed runs, <sample name> will be replaced with the lane numbers 
+					# (lane1, lane2, ..., lane8) and <barcode sequence> will be replaced with "NoIndex".
 					row[self.DESCRIPTION] = ""
 					row[self.CONTROL] = "N"
 					row[self.RECIPE] = ""
@@ -189,45 +195,67 @@ class V1:
 					row[self.SAMPLE_PROJECT] = self.UNDETERMINED_INDICES_FOLDER
 		return rows
 
-	def createSampleId(lane):
+	def _setSamples(self):
+		samples = {}
+		for i in self.sampleSheet:
+			lane = i[self.LANE]
+			sampleName = i[self.SAMPLE_ID]		
+			if lane not in samples:
+				samples[lane] = []
+			samples[lane].append(sampleName)
+		return samples
+
+	def getSamples(self):
+			return self.samples
+
+	def createSampleId(self,lane):
 		"""
 		Function : Creates a sample ID according to the UG when one isn't present for a given record in a given lane in the sample sheet.
 		Args : lane - int. 
 		"""
 		return "lane" + str(lane)
 			
-	def getFlowCellId():
+	def getFlowCellId(self):
 		return getFlowCellId(runName=self.runName)
 
-	def getFastqFiles(self,sampleSheetEntry):
+	def getSampleSheetEntriesBySampleAndLane(self,lane,sampleName):
+		entries = []
+		for entry in self.sampleSheet:
+			if lane != entry[self.LANE]:
+				continue
+			if sampleName != entry[self.SAMPLE_ID]:
+				continue
+			entries.append(entry)
+		return entries
+
+	def getFastqFiles(self,lane,sampleName):
 		"""
-		Retrieves the paths to the FASTQ files (with or without a .gz extension) belonging to a given sample from the SampleSheet.
+		Retrieves the paths to the FASTQ files (with or without a .gz extension) belonging to a given lane and sample.
+
 		According to the v1.8.4 UG, bc2fastq names FASTQ files like so:
 			<sample name>_<barcode sequence>_L<lane>_R<read number>_<set number>.fastq.gz	
-		Function : 
-		Args		 : sampleSheetEntry   - dict. reperesenting a row from the SampleSheet.csv file that was used in the demultiplexing.
-	                                  Should be formatted as one of the dicts stored in the list returned by parseSampleSheet().
-		Returns  : list of FASTQ files that belong to the sampleSheetEntry.
-		"""
-		project = sampleSheetEntry[self.SAMPLE_PROJECT]
-		sample = sampleSheetEntry[self.SAMPLE_ID]
-		lane = sampleSheetEntry[self.LANE]
-		index = sampleSheetEntry[self.INDEX]
-	
-		if not index:
-			index = self.NO_INDEX
-			#As stated in the bcl2fastq v1.8.4 UG: In the case of non-multiplexed runs, <sample name> will be replaced with the lane numbers 
-			# (lane1, lane2, ..., lane8) and <barcode sequence> will be replaced with "NoIndex".
-	
-		sampleDir = self.SAMPLE_DIR_PREFIX + sample
-		projectDir = self.PROJECT_DIR_PREFIX + project
-		path = os.path.join(self.outdir,projectDir,sampleDir)
-		print("Looking for FASTQ files in path {path}".format(path=path))
-		fastqGlob = os.path.join(path,sample + "_" + index + "*.fastq")
-		fastqGzGlob = fastqGlob + ".gz"
 
-		fqfiles = glob.glob(fastqGlob) + glob.glob(fastqGzGlob)
-		return fqfiles
+		Args     : lane - int. The number of the sequencing lane.
+							 sampleName - One of the sample names from the sample sheet.
+		Returns  : dict. where each key is an index of the given sample in the given lane. The value of the key is a list of FASTQ files belonging to that barcode in the given sample and given lane.
+		"""
+		if sampleName not in self.sampleNames:
+			raise UnknownSampleError("Sample name {sampleName} is not a known sample. Based on the provided sample sheet, the known samples are {knownSamples}.".format(sampleName=sampleName,knownSamples=self.sampleNames))
+		entries = self.getSampleSheetEntriesBySampleAndLane(lane=lane,sampleName=sampleName)
+		fqfileDict = {}
+		for sampleSheetEntry in entries:
+			project = sampleSheetEntry[self.SAMPLE_PROJECT]
+			index = sampleSheetEntry[self.INDEX]
+			sampleDir = self.SAMPLE_DIR_PREFIX + sample
+			if project != self.UNDETERMINED_INDICES_FOLDER:
+				projectDir = self.PROJECT_DIR_PREFIX + project
+			path = os.path.join(self.outdir,projectDir,sampleDir)
+			print("Looking for FASTQ files in path {path}".format(path=path))
+			fastqGlob = os.path.join(path,sample + "_" + index + "*.fastq")
+			fastqGzGlob = fastqGlob + ".gz"
+			fqfiles = glob.glob(fastqGlob) + glob.glob(fastqGzGlob)
+			fqfileDict[index] = fqfiles
+		return fqfileDict
 	
 	def filterSampleSheetEntries(self,entries,lanes):
 		"""
