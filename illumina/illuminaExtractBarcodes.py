@@ -1,12 +1,13 @@
 from argparse import ArgumentParser
 import time
 import os
-import fastq_utils
+from gbsc_utils.fastq import fastq_utils
 
 NUCLEOTIDES = "ACTGN"
-parser = ArgumentParser()
-parser.add_argument('-i','--infile',required=True,help="Input FASTQ file.")
-parser.add_argument('-b','--barcodes',nargs="+",required=True,help="One or more case-insensitive and space-separated barcodes; i.e. ATGCAG TGACTC")
+description = "Parses the given barcoded samples out of a FASTQ file."
+parser = ArgumentParser(description=description)
+parser.add_argument('-i','--infile',required=True,help="Required. Input FASTQ file.")
+parser.add_argument('-b','--barcodes',nargs="+",required=True,help="Required. One or more case-insensitive and space-separated barcodes; i.e. ATGCAG TGACTC")
 parser.add_argument('-p','--prefix',default=time.time(),help="The prefix of each output file name. Each output file is named prefix_barcode.fq, where prefix is the prefix gien here and barcode is one of the barcode sequences givein in --barcodes. Defaults to a timestamp.")
 
 args = parser.parse_args()

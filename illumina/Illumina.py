@@ -2,6 +2,8 @@ import sys
 import re
 import collections
 
+
+
 class SampleSheetMiSeqToHiSeq:
 	"""Parses a SampleSheet in the MiSeq format. The MiSeq SampleSheet has several sections, with each denoted by a section header within brackets (i.e. [Header]). Sections include [Header],
 		 [Reads], [Settings, and [Data]. 
