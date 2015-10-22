@@ -91,5 +91,16 @@ class TestFastqFile_sampleId(unittest.TestCase):
 		n = FastqFile("m15_S4_L001_R2_003.fastq.gz")
 		self.assertEqual(n.id,"S4")
 
+class TestFastqFile_sampleName:
+	
+	def test_m15(self):
+		n = FastqFile("m15_CAGATC_L001_R2_003.fastq.gz")
+		self.assertEqual(n.sampleName,"m15")
+
+	def test_hi_five(self):
+		n = FastqFile("hi_five_CAGATC_L001_R2_003.fastq.gz")
+		self.assertEqual(n.sampleName,"hi_five")
+
 if __name__ == "__main__":
 	unittest.main(verbosity=2)
+
