@@ -1,6 +1,6 @@
 import unittest
 from ddt import ddt, data, unpack
-from gbsc_utils.illumina.illumina_fastq_file import FastqFile,UnknownReadNumberException
+from gbsc_utils.illumina.fastq_file_name import FastqFile,UnknownReadNumberException
 
 """
 Tests functions that parse fields out of Illumina's FASTQ files as output by the bcl2fastq program. 
