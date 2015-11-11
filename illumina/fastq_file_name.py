@@ -1,7 +1,20 @@
+import os
+
 class UnknownReadNumberException(Exception):
 	pass
 
 class FastqFile:
+	"""
+	Parses the individual fields of an Illumina FASTQ file name as output from bcl2fastq, and stores the fields as instance attributes.
+
+	According to the v1.8.4 UG, bc2fastq names FASTQ files like so:
+	<sample name>_<barcode sequence>_L<lane>_R<read number>_<set number>.fastq.gz	
+
+	#Add FASTQ name format for bcl2fastq 2.17
+
+	Since the SAMPLE_PROJECT and SAMPLE_NAME field in bcl2fastq 1X, and additionally SAMPLE_NAME in bcl2fastq2, can contain underscores, then we must always use negative indexing to get
+	a token for the chunck, read number, or lane.	
+	"""
 
 	FORWARD_READ_NUM = 1
 	REVERSE_READ_NUM = 2
@@ -9,14 +22,17 @@ class FastqFile:
 
 	def __init__(self,fqfile):
 		"""
-		Args : fqfile - A FASTQ file name as assigned/formatted the Illumina demultiplexer. 
+		Args : fqfile - A FASTQ file name, with or without the direcotry path, as assigned/formatted the Illumina demultiplexer. The directory path if provided will be stored in the 
+										'path' instance attribute.
 		"""
-		self.fqf = fqfile
+		self.path = fqfile
+		self.fqf = os.path.basename(fqfile)
 		self.tokens = self.fqf.split("_")
 		self._setReadNumber()   #self.read
 		self._setLaneNumber()   #self.lane
 		self._setSetNumber()    #self.set
-		self._setSampleId()      #self.id
+		self._setSampleId()     #self.id
+		self._setSampleName()   #self.sampleName
 
 	def isForwardReadFile(self):
 		"""
@@ -35,15 +51,19 @@ class FastqFile:
 		if self.read == self.REVERSE_READ_NUM:
 			return True
 		return False
+
+	def _setSampleName(self):
+		"""
+		Function : Parses out the <sample name> field from the FASTQ file's name. Sets the value to the 'sampleName' instance attribute.
+		"""
+		#the SAMPLE_NAME field can itself contain underscores.
+		sampleFields =  self.tokens[0:-5 + 1] 
+		self.sampleName = "_".join(sampleFields)
 			
 	def _setReadNumber(self):
 		"""
-		Function : According to the v1.8.4 UG, bc2fastq names FASTQ files like so:
-					 		 <sample name>_<barcode sequence>_L<lane>_R<read number>_<set number>.fastq.gz	
-		Returns: int. in the set [1,2], where 1 means forward read and 2 means reverse read.
+		Function : Parses out the <read number> field from the FASTQ file's name. Sets the value to the 'read' instance attribute.
 		"""
-		#Since the SAMPLE_PROJECT and SAMPLE_ID field in bcl2fastq 1X, and additionally SAMPLE_NAME in bcl2fastq2, can contain underscores, then we must always use negative indexing to get
-		# a token for the chunck, read number, or lane.	
 		readNum = int(self.tokens[-2].lstrip("R"))
 		if readNum not in  self.READ_NUMS:
 			raise UnknownReadNumberException("Unkwown read number '{readNum}' in FASTQ file name '{name}'. Only the following read numbers are recognized: '{allowed}'.".format(readNum=readNum,name=self.fqf,allowed=self.READ_NUMS))
@@ -51,11 +71,8 @@ class FastqFile:
 	
 	def _setLaneNumber(self):
 		"""
-		Function : Grabs the lane number (i.e. 1) from the FASTQ file name that was assigned by the sequencer.
-		Returns  : int.
+		Function : Parses out the <lane> number from the FASTQ file's name. Sets the value to the 'lane' instance attribute.
 		"""
-		#Since the SAMPLE_PROJECT and SAMPLE_ID field in bcl2fastq 1X, and additionally SAMPLE_NAME in bcl2fastq2, can contain underscores, then we must always use negative indexing to get
-		# a token for the chunck, read number, or lane.	
 		laneNum = self.tokens[-3].lstrip("L")
 		self.lane = int(laneNum)
 	
@@ -64,8 +81,6 @@ class FastqFile:
 		Function : Grabs the set number of a FASTQ file.
 		Returns  : int.
 		""" 
-		#Since the SAMPLE_PROJECT and SAMPLE_ID field in bcl2fastq 1X, and additionally SAMPLE_NAME in bcl2fastq2, can contain underscores, then we must always use negative indexing to get
-		# a token for the chunck, read number, or lane.	
 		setNumber = self.tokens[-1].split(".")[0]
 		self.set = setNumber
 

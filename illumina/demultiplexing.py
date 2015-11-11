@@ -6,59 +6,7 @@ import csv
 import re
 import glob
 from pprint import pprint
-
-FORWARD_READ_NUM = 1
-REVERSE_READ_NUM = 2
-
-def getForwardFastqFiles(fastqfiles):
-	"""
-	Function : Given a list of FASTQ filenames, outputs the subset that contains only forward read FASTQ files.
-	Args     : fastqfiles - list of FASTQ file names.
-	Returns  : list.
-	"""
-	res = []
-	for i in fastqfiles:
-		readNum = getFastqFileReadNumber(i)
-		if readNum == FORWARD_READ_NUM:
-			res.append(i)
-	return res
-			
-def getReverseFastqFiles(fastqfiles):
-	"""
-	Function : Given a list of FASTQ filenames, outputs the subset that contains only forward read FASTQ files.
-	Args     : fastqfiles - list of FASTQ file names.
-	Returns  : list.
-	"""
-	res = []
-	for i in fastqfiles:
-		readNum = getFastqFileReadNumber(i)
-		if readNum == REVERSE_READ_NUM:
-			res.append(i)
-	return res
-		
-def getFastqFileReadNumber(fastqfile):
-	"""
-	Function : According to the v1.8.4 UG, bc2fastq names FASTQ files like so:
-				 		 <sample name>_<barcode sequence>_L<lane>_R<read number>_<set number>.fastq.gz	
-	Args     : fastqfile - path to a fastq file
-	Returns: int. in the set [1,2], where 1 means forward read and 2 means reverse read.
-	"""
-	tokens = fastqfile.split("_")
-	#Since the SAMPLE_PROJECT and SAMPLE_ID field in bcl2fastq 1X, and additionally SAMPLE_NAME in bcl2fastq2, can contain underscores, then we must always use negative indexing to get
-	# a token for the chunck, read number, or lane.	
-	return int(tokens[-2].lstrip("R"))
-
-def getFastqFileSetNumber(fastqfile):
-	"""
-	Function : Grabs the set number of a FASTQ file.
-	Returns  : str. (i.e. 001)
-	""" 
-	tokens = fastqfile.split("_")
-	#Since the SAMPLE_PROJECT and SAMPLE_ID field in bcl2fastq 1X, and additionally SAMPLE_NAME in bcl2fastq2, can contain underscores, then we must always use negative indexing to get
-	# a token for the chunck, read number, or lane.	
-	setNumber = tokens[-1].split(".")[0]
-	return setNumber
-
+from gbsc_utils.illumina import fastq_file_name as ffn
 
 class SampleSheetException(Exception):
 	pass
@@ -76,29 +24,7 @@ def getFlowCellId(runName):
 
 
 
-class bcl2fastq:
-
-	def __init__(self):
-		pass
-
-	def _setSamples(self):
-		"""
-		Function : Creates a dict. with the lane numbers as keys. Each value is a list of SAMPLE_IDs in the lane.
-		Returns : Dict.
-	"""
-		samples = {}
-		for i in self.ss:
-			lane = i[self.LANE]
-			sampleName = i[self.SAMPLE_ID]		
-			if lane not in samples:
-				samples[lane] = []
-			samples[lane].append(sampleName)
-		return samples
-
-	def getSamples(self):
-			return self.samples
-
-class V1(bcl2fastq):
+class V1:
 	#list SampleSheet Fields
 	FCID = "FCID"
 	LANE = "Lane"
@@ -117,8 +43,8 @@ class V1(bcl2fastq):
 
 	UNDETERMINED_INDICES_FOLDER = "Undetermined_indices"
 
-	PROJECT_DIR_PREFIX = "Project_"
-	SAMPLE_DIR_PREFIX = "Sample_"
+	PROJECT_DIR_PREFIX = "Project_" #prefix added to SAMPLE_PROJECT by bcl2fastq
+	SAMPLE_DIR_PREFIX = "Sample_"   #prefix added to SAMPLE_ID by bcl2fastq
 	
 	SS_COLUMNS = [ #orderd as seen in the SS
 		FCID,
@@ -143,7 +69,6 @@ class V1(bcl2fastq):
 		self.runName = runName
 		self.outdir = bcl2fastqOutputDir
 		self.ss = self._parseSampleSheet(sampleSheet)
-		self.samples = self._setSamples()
 		print(self.ss)
 
 	def __iter__(self):
@@ -290,7 +215,32 @@ class V1(bcl2fastq):
 			entries.append(entry)
 		return entries
 
-	def getFastqFilePaths(self,lane):
+	def getFastqFilePathsBySample(self,ssEntry):
+		"""
+		Function : Searches for FASTQ files having a .fastq or .fastq.gz extension within the respective project and sample directories that blc2fastq would have output the 
+							 FASTQ files in for the given sample sheet entry. Within this path, only the FASTQ files having the index in their file name that matches that of the provided
+							 sample sheet entry are returned.
+		Args     : ssEntry - dict. An element of self.ss.
+		Returns  : list.
+		"""
+		project = ssEntry[self.SAMPLE_PROJECT]
+		sample = ssEntry[self.SAMPLE_ID]
+		index = ssEntry[self.INDEX]
+		sampleDir = self.SAMPLE_DIR_PREFIX + sample
+		if project != self.UNDETERMINED_INDICES_FOLDER:
+			projectDir = self.PROJECT_DIR_PREFIX + project
+		path = os.path.join(self.outdir,projectDir,sampleDir)
+		print("Looking for FASTQ files haivng a .fastq or .fastq.gz extension in path {path}".format(path=path))
+		fastqGlob = os.path.join(path,"*.fastq")
+		fastqGzGlob = fastqGlob + ".gz"
+		fqfiles = glob.glob(fastqGlob) + glob.glob(fastqGzGlob)
+		if not fqfiles:
+			raise Exception("No FASTQ files found in the path search ('{path}')for SampleSheet entry {ssEntry}!".format(ssEntry=ssEntry))
+		fqfObjs = [ffn.FastqFile(i) for i in fqfiles]
+		fqfObjs = [x for x in fqfObjs if x.id == index]
+		return fqfObjs
+
+	def getFastqFilePathsByLane(self,lane):
 		"""
 		Retrieves the paths to the FASTQ files (with or without a .gz extension) belonging to a given lane.
 
@@ -302,49 +252,24 @@ class V1(bcl2fastq):
 		"""
 		entries = self.getSampleSheetEntriesByLane(lane=lane)
 		fqfileDict = {}
-		for sampleSheetEntry in entries:
-			project = sampleSheetEntry[self.SAMPLE_PROJECT]
-			sample = sampleSheetEntry[self.SAMPLE_ID]
-			index = sampleSheetEntry[self.INDEX]
-			sampleDir = self.SAMPLE_DIR_PREFIX + sample
-			if project != self.UNDETERMINED_INDICES_FOLDER:
-				projectDir = self.PROJECT_DIR_PREFIX + project
-			path = os.path.join(self.outdir,projectDir,sampleDir)
-			print("Looking for FASTQ files in path {path}".format(path=path))
-			fastqGlob = os.path.join(path,sample + "_" + index + "*.fastq")
-			fastqGzGlob = fastqGlob + ".gz"
-			fqfiles = glob.glob(fastqGlob) + glob.glob(fastqGzGlob)
-			fqfileDict[index] = fqfiles
+		for ssEntry in entries:
+			index = ssEntry[self.INDEX]
+			fqfObjs = self.getFastqFilePathsBySample(ssEntry=ssEntry)
+			fqfileDict[index] = fqfObjs
 		return fqfileDict
 	
-	def filterSampleSheetEntriesByLane(self,entries,lanes):
-		"""
-		Args : entries - a list of dicts as returned by _parseSampleSheet_va().
-					 lanes   - list of lane numbers (may be int or str.) that indicate which samplesheet entries to keep.
-	                   If lanes is set to None, then the input 'entries' is returned unchanged.
-		"""
-		if not lanes:
-			return entries
-		keep = []
-		lanes = [str(x) for x in lanes]
-		for i in entries:
-			lane = entries[self.LANE]
-			if lane in lanes:
-				keep.append(entry)
-		return keep
-
 #for each FASTQ file, dx stores these properties:    { 'SampleProject': 'Demo', 'SampleID': 'PhiX', 'Index': 'TTAGGC', 'Lane': 1, 'Read': 1, 'Chunk': 1 } 
 def main(bcl2fastqOutputDir,sampleSheet,lanes=None):
 	d = V1(sampleSheet=sampleSheet)
 	visited = {}
 	for entry in d.sampleSheet:
 		#print(entry)
-		fqfiles = d.getFastqFilePaths(sampleSheetEntry=entry)
-		for f in fqfiles:
-			print("Found FASTQ file {f}".format(f=f))
+		fqfObjs = d.getFastqFilePathsBySample(ssEntry=entry)
+		for f in fqfObjs:
+			print("Found FASTQ file {f}".format(f=f.path))
 			#uploadFastqFile(fqfile=fqfile,props=entry)
 
-class V2(bcl2fastq):
+class V2:
 	"""
 	The software versions dependencies given below are copied from the v2.17 UG.
 
@@ -382,9 +307,9 @@ class V2(bcl2fastq):
 			removes these bases and places them into the read name in the FASTQ files.			
 	"""
 
-	#If no sample sheet is provided, all reads are saved in Undetermined_S0_ FASTQ files (UG), i.e. Undetermined_S0_L001_R1_001.fastq.gz or Undetermined_S0_L001_R2_001.fastq.gz.
+	#If no sample sheet is provided, all reads are saved in Undetermined_S0_* FASTQ files (UG), i.e. Undetermined_S0_L001_R1_001.fastq.gz or Undetermined_S0_L001_R2_001.fastq.gz.
 	#Sample_ID and Sample_Name may only contain alpha-numerics and '-' and '_'.
-	#It is possible to assign samples without index to Sample_ID or other identifiers by leaving the Index field empty (but unlike V1, this must be the only entry in the SampleShee!)
+	#It is possible to assign samples without index to Sample_ID or other identifiers by leaving the Index field empty (but unlike V1, this must be the only entry in the SampleSheet!)
 	#SAMPLE SHEET DETAILS
 	# 1) Sample_ID is required and must be unique within a lane
 	#	2) FASTQ files are named like so:
@@ -415,9 +340,6 @@ class V2(bcl2fastq):
 	INDEX = "index"
 	INDEX2 = "index2"
 
-	#Default sample name if not multiplexed lane:
-	NO_INDEX = "Undetermined"
-
 	SS_COLUMNS = [ #orderd as seen in the SS
 		SAMPLE_PROJECT,
 		LANE,
@@ -426,6 +348,7 @@ class V2(bcl2fastq):
 		INDEX,
 		INDEX2 ]
 
+	UNDETERMINED = "Undetermined"
 	SAMPLE_NUM = "" #Used to store the sample number that corresponds to the S# field in the file name, where # is an int.
 	S0 = "S0" # the sample number used samples not having a barcode
 
@@ -438,13 +361,15 @@ class V2(bcl2fastq):
 		self.runName = runName
 		self.outdir = bcl2fastqOutputDir
 		self.ss = self._parseSampleSheet(sampleSheet)
-		self.samples = self._setSamples()
 		print(self.ss)
 
 	def _parseSampleSheet(self,sampleSheet):
 		"""
-		The sample sheet needs to have a header line, b/c bcl2fastq will read past the first line.
-		This function requires the presence of the following fields:
+		The sample sheet needs to have a [Data] section line, followed by a field header line. bcl2fastq2 does not appear to require these lines (especially the field header line as needed for 
+		bcl2fastq 1X which will expect it and will otherwise skip the first sample if the header line isn't present) and doesn't appear to skip samples if the header line is missing. But this script
+		will require them.
+
+		This function requires at minimum the presence of the following fields in each sample line:
 			1) Lane,
 			2) SampleID,
 
@@ -486,14 +411,13 @@ class V2(bcl2fastq):
 				raise SampleSheetException("Missing value for 'Lane' field in Sample Sheet {samplesheet} in sampleLine {line}.".format(sampleSheet=sampleSheet,line=",".join(line)))
 			if lane not in lanesPresent:
 				lanesPresent.append(lane)
-			if not entry[self.SAMPLE_ID]:
+			sampleId = entry[self.SAMPLE_ID]	
+			if not sampleId:
 				raise SampleSheetException("Missing value for 'SampleID' field in Sample Sheet {samplesheet} in sampleLine {line}.".format(sampleSheet=sampleSheet,line=",".join(line)))
 			if not entry[self.INDEX]:
-				entry[self.INDEX] = self.UNDETERMINED_INDEX_NAME
 				entry[self.SAMPLE_NUM] = 0
-			sampleId = entry[self.SAMPLE_ID]	
 			if sampleId not in sampleIdDict:
-				if entry[self.INDEX] = self.UNDETERMINED_INDEX_NAME
+				if not entry[self.INDEX]:
 					sampleIdDict[sampleId] = self.S0
 				else:
 					sampleNumber += 1
@@ -510,10 +434,10 @@ class V2(bcl2fastq):
 			row = {}
 			row[self.SAMPLE_PROJECT] = ""
 			row[self.SAMPLE_LANE] = lane
-			row[self.SAMPLE_ID] = self.UNDETERMINED_INDEX_NAME
-			row[self.SAMPLE_NAME] = self.UNDETERMINED_INDEX_NAME
-			row[self.INDEX] = self.UNDETERMINED_INDEX_NAME
-			row[self.INDEX2] = self.UNDETERMINED_INDEX_NAME
+			row[self.SAMPLE_ID] = self.UNDETERMINED
+			row[self.SAMPLE_NAME] = self.UNDETERMINED
+			row[self.INDEX] = ""
+			row[self.INDEX2] = ""
 			row[self.SAMPLE_NUM] = self.S0
 			rows.append(row)
 		return rows
@@ -528,16 +452,16 @@ class V2(bcl2fastq):
 
 		Function : 
 		Args     : lane - int. The number of the sequencing lane.
-		Returns  : list of FASTQ files that belong to the sampleSheetEntry.
+		Returns  : list of FASTQ files that belong to the given lane.
 		"""
 		entries = self.getSampleSheetEntriesByLane(lane=lane)
 		fqfileDict = {}
-		for sampleSheetEntry in entries:
-			project = sampleSheetEntry[self.SAMPLE_PROJECT]
-			sampleName = sampleSheetEntry[self.SAMPLE_NAME]
-			sampleNum = sampleSheetEntry[self.SAMPLE_NUM]
-			index = sampleSheetEntry[self.INDEX]
-			index2 = sampleSheetEntry[self.INDEX2]
+		for ssEntry in entries:
+			project = ssEntry[self.SAMPLE_PROJECT]
+			sampleName = ssEntry[self.SAMPLE_NAME]
+			sampleNum = ssEntry[self.SAMPLE_NUM]
+			index = ssEntry[self.INDEX]
+			index2 = ssEntry[self.INDEX2]
 			combinedIndex = index
 			if index2:
 				combinedIndex = index + "-" + index2
@@ -545,17 +469,10 @@ class V2(bcl2fastq):
 			print("Looking for FASTQ files in path {path}".format(path=path))
 			#we need a lot of details in the glob pattern, b/c lanes can have their FASTQ files output in the same directory, and can even have the same SAMPLE_ID and hence the same SAMPLE_NUM. 
 			# Thus, its necessary to include the lane number in the glob pattern.
-			globPattern = os.path.join(path,sampleName + "_" sampleNum + "_" + "L00" + str(lane) + "*.fastq.gz")
+			globPattern = os.path.join(path,sampleName + "_" + sampleNum + "_" + "L00" + str(lane) + "*.fastq.gz")
 			fqfiles = glob.glob(globPattern)
 			fqfileDict[combinedIndex] = fqfiles
 		return fqfileDict
-
-	def filterSampleSheetEntriesByLane(self,entries,lanes):
-		pass
-
-	def getFastqFileReadNumber(self,fastqfile):
-		pass
-
 
 
 if __name__ == "__main__":
