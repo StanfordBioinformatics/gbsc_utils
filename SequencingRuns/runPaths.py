@@ -22,6 +22,7 @@ pubDir = conf["pubDir"]
 oldPubDir = conf["oldPubDir"]
 splitLaneReg = re.compile(r'_L\d_')
 getLaneReg = re.compile(r'_(L\d)_')
+copyCompleteSentinalFile = conf["copyCompleteSentinalFile"] #the name of the file that signals completetion of the copy of the run directory to SCG
 
 modMinThreshold = 30 # modification minutes threshold
 
@@ -79,7 +80,7 @@ def getRunNameFlf(filename):
 
 def getRunYearMonth(run):
 	"""
-	Function : Given a run name that begins with a data of the format YYMMDD, i.e. 120124_ROCKFORD_00123_FC64DHK,
+	Function : Given a run name that begins with a date of the format YYMMDD, i.e. 120124_ROCKFORD_00123_FC64DHK,
 						 parses out the year and and month.
 	Args     : The run name
 	Returns  : two-item tuple. The first item is the four-ditig year. The second is the month as a lower-case three-letter string (abbreviation).
@@ -89,9 +90,44 @@ def getRunYearMonth(run):
 	month = months[digits[2:4]]
 	return (year,month)
 
+def getRunPath(run):
+	"""
+	Function : Returns the path of a run directory prefixed with the directory specifed by 'runsInProgressDir'.
+	Args     : run - sequencing run name.
+	Returns  : str.
+	"""
+	return os.path.join(runsInProgressDir,run)
+
+def isCopyComplete(run):
+	"""
+	Funoction : Determines whether the copy of the sequencing run to SCG has completed. A copy is considered completed if the run directory path returned by getRunPath(run) or getPubDir(run) contains the copy complete sentinal file.
+							getPubDir(run) is only tested if the former returns False.
+							
+	Args     : run - sequencing run name.
+	Returns  : bool.
+	"""
+	rundir = ""
+	try:
+		rundir = getRunPath(run)
+	except OSError:
+		pass
+	if os.path.exists(rundir):
+		if os.path.exists(os.path.join(rundir,copyCompleteSentinalFile)):
+			return True
+	
+	pubPath = ""
+	try:
+		pubPath = getPubPath(run)
+	except OSError:
+		pass
+	if os.path.exists(pubPath):
+		if os.path.exists(os.path.join(pubPath,copyCompleteSentinalFile)):
+			return True
+	return False
+
 def getArchiveDir(run):
 	"""
-	Function : Calculates the archivie directory path for a given run.
+	Function : Calculates the archive directory path for a given run.
 	Args     : run - Run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
 	Returns  : str
 	"""
