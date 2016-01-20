@@ -49,3 +49,8 @@ def setLatestPipelineRunToFinished(run):
 	maxPrunId = getMaxPipelineRunId(run)
 	cmd = "endrun.py --pipeline_id {maxPrunId} {run}".format(maxPrunId=maxPrunId,run=run)
 	gbsc_utils.createSubprocess(cmd)
+
+
+def isArchivingDone(run):
+	ri = conn.getruninfo(run)['run_info']
+	return ri['archiving_done']
