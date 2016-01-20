@@ -48,9 +48,9 @@ checkFinished = args.check_finished
 
 archivingDone = uhts_utils.isArchivingDone(run=runName)
 if archivingDone:
-	print("Archived.")
+	print("{run}: Archived.".format(run=runName))
 else:
-	print("Not Archived.")
+	print("{run}: Not Archived.".format(run=runName))
 
 #doneFlag = runPaths.ARCHIVE_STATE_COMPLETE
 #notDoneFlag = runPaths.ARCHIVE_STATE_NOT_STARTED

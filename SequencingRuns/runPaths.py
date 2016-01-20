@@ -227,23 +227,24 @@ def findAllFastqs(run,lane):
 	fastqs =  glob.glob(globPat)
 	return fastqs
 
-def rawArchiveDone(rundir):
-	"""
-	Function :
-	Args     : rundir - str. The run name (no directory path prefix).
-	Returns  : int. one of [ARCHIVE_STATE_NOT_STARTED, ARCHIVE_STATE_IN_PROGRESS, ARCHIVE_STATE_COMPLETE] 
-	"""
+#def rawArchiveDone(rundir):
+#	"""
+#	Function :
+#	Args     : rundir - str. The run name (no directory path prefix).
+#	Returns  : int. one of [ARCHIVE_STATE_NOT_STARTED, ARCHIVE_STATE_IN_PROGRESS, ARCHIVE_STATE_COMPLETE] 
+#	"""
 #	year,month = getRunYearMonth(rundir)	
-	archivePath = getArchiveDir(rundir)
-	rawArchive = os.path.join(archivePath,rundir + rawArchiveExtension)
-	if not os.path.exists(rawArchive):
-		return ARCHIVE_STATE_NOT_STARTED
-	else:
-		minutesSinceMod = gbsc_utils.getFileAgeMinutes(rawArchive)
-		if minutesSinceMod <= modMinThreshold: #consider in progress
-			return ARCHIVE_STATE_IN_PROGRESS
-		else:
-			return ARCHIVE_STATE_COMPLETE
+#	archivePath = getArchiveDir(rundir)
+#	rawArchive = os.path.join(archivePath,rundir + rawArchiveExtension)
+#	if not os.path.exists(rawArchive):
+#		return ARCHIVE_STATE_NOT_STARTED
+#	else:
+#		minutesSinceMod = gbsc_utils.getFileAgeMinutes(rawArchive)
+#		if minutesSinceMod <= modMinThreshold: #consider in progress
+#			return ARCHIVE_STATE_IN_PROGRESS
+#		else:
+#			return ARCHIVE_STATE_COMPLETE
+	###NEW CODE: Check archiving_done flag on run object in UHTS. Check code in gbsc/gbsc_utils/uhts/uhts_utils.py
 
 def analysisArchiveDone(rundir):
 	"""
