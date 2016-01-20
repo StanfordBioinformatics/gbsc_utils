@@ -8,7 +8,6 @@ import subprocess
 from gbsc_utils import gbsc_utils
 from gbsc_utils.uhts import uhts_utils
 
-
 def setRunToArchived(runName):
 	cmd = "lims.py modifyRun {runName} archiving_done True".format(runName=runName)
 	print("Setting UHTS archiving flag to finished")
@@ -43,25 +42,31 @@ checkFinished = args.check_finished
 #MISEQ = miseqReg.match(runName)
 
 #check if the raw archive of the run is done
-rawAS = runPaths.rawArchiveDone(runName) #rawAS = rawArchiveStatus
+#rawAS = runPaths.rawArchiveDone(runName) #rawAS = rawArchiveStatus
 #check if the analysis archive of the run is done
-aAS = runPaths.analysisArchiveDone(runName) #aAS = analysisArchiveStatus
+#aAS = runPaths.analysisArchiveDone(runName) #aAS = analysisArchiveStatus
 
-doneFlag = runPaths.ARCHIVE_STATE_COMPLETE
-notDoneFlag = runPaths.ARCHIVE_STATE_NOT_STARTED
-inProgressFlag = runPaths.ARCHIVE_STATE_IN_PROGRESS
+archivingDone = uhts_utils.isArchivingDone(run=runName)
+if archivingDone:
+	print("Archived.")
+else:
+	print("Not Archived.")
 
-if rawAS == inProgressFlag or aAS == inProgressFlag:
-	print("in_progress\t{runName}".format(runName=runName))
-	sys.exit()
-if rawAS == doneFlag and aAS == notDoneFlag:
-	print("raw_only\t{runName}".format(runName=runName))
-elif rawAS == notDoneFlag and aAS == doneFlag:
-	print("analysis_only\t{runName}".format(runName=runName))
-elif rawAS == doneFlag and aAS == doneFlag:
-	print("all_done\t{runName}".format(runName=runName))
-elif rawAS == notDoneFlag and aAS == notDoneFlag:
-	print("nothing_done\t{runName}".format(runName=runName))
+#doneFlag = runPaths.ARCHIVE_STATE_COMPLETE
+#notDoneFlag = runPaths.ARCHIVE_STATE_NOT_STARTED
+#inProgressFlag = runPaths.ARCHIVE_STATE_IN_PROGRESS
+#
+#if rawAS == inProgressFlag or aAS == inProgressFlag:
+#	print("in_progress\t{runName}".format(runName=runName))
+#	sys.exit()
+#if rawAS == doneFlag and aAS == notDoneFlag:
+#	print("raw_only\t{runName}".format(runName=runName))
+#elif rawAS == notDoneFlag and aAS == doneFlag:
+#	print("analysis_only\t{runName}".format(runName=runName))
+#elif rawAS == doneFlag and aAS == doneFlag:
+#	print("all_done\t{runName}".format(runName=runName))
+#elif rawAS == notDoneFlag and aAS == notDoneFlag:
+#	print("nothing_done\t{runName}".format(runName=runName))
 
 
 #Before running the archive script, must check that there is a pipeline run in UHTS with the status 'done', otherwise, the archive won't proceed.
@@ -78,7 +83,8 @@ if allPipelineRuns: #if none, could be a MiSeq Run as prior to May 20, 2015, tho
 
 
 if doArchive:
-	if rawAS == notDoneFlag:
+#	if rawAS == notDoneFlag:
+	if not archivingDone:
 		cmd = "run_analysis.rb archive_illumina_run -r {runName} --keep_rundir --verbose".format(runName=runName)
 		msg = "Archiving the raw data and the analysis for run {runName}".format(runName=runName)
 		if not allPipelineRuns: #could be a MiSeq and thus not have any pipeline runs
@@ -90,24 +96,25 @@ if doArchive:
 		gbsc_utils.createSubprocess(cmd)
 		setRunToArchived(runName)
 	
-	elif aAS == notDoneFlag:
-		if allPipelineRuns: #then at least there is an analysis to archive
-			print("Archiving the analysis for run {runName}".format(runName=runName))
-			cmd = "run_analysis.rb archive_illumina_run -r {runName} --analysis_only --keep_rundir --verbose".format(runName=runName)
-			gbsc_utils.createSubprocess(cmd)
-			#setRunToArchived(runName) #not necessary since run_analysis.rb will set the flag
-		else:
-			print("No pipelines to archive for run {runName}".format(runName=runName))
+#	elif aAS == notDoneFlag:
+#		if allPipelineRuns: #then at least there is an analysis to archive
+#			print("Archiving the analysis for run {runName}".format(runName=runName))
+#			cmd = "run_analysis.rb archive_illumina_run -r {runName} --analysis_only --keep_rundir --verbose".format(runName=runName)
+#			gbsc_utils.createSubprocess(cmd)
+#			#setRunToArchived(runName) #not necessary since run_analysis.rb will set the flag
+#		else:
+#			print("No pipelines to archive for run {runName}".format(runName=runName))
 
-	if (rawAS == doneFlag and aAS == doneFlag) or (rawAS == doneFlag and not allPipelineRuns): 
+#	if (rawAS == doneFlag and aAS == doneFlag) or (rawAS == doneFlag and not allPipelineRuns): 
 		#then make sure that in the LIMS, the archive flag is set
-		setRunToArchived(runName)
+		#setRunToArchived(runName)
 
 	
 	
 runNamePath = os.path.join(runsInProgressDir,runName)
 #move to Completed folder if all archiving is done:
-if rawAS == doneFlag and (aAS == doneFlag or not allPipelineRuns) and move:
+#if rawAS == doneFlag and (aAS == doneFlag or not allPipelineRuns) and move:
+if archivingDone and move:
 	dest = os.path.join(runsCompletedDir,runName)
 	print("Moving run {run} to {dest}.".format(run=runName,dest=dest))
 	try:
