@@ -1,5 +1,9 @@
 #!/bin/bash -eu
 
+#$ -M nathankw@stanford.edu
+#$ -m ae
+#$ -R y
+
 ###
 #Nathaniel Watson
 #2016-02-02
@@ -11,12 +15,45 @@
 module load jsonwf/current
 module load gbsc/gbsc_utils #exports GBSC_UTILS env. var.
 
-outdir=$1
-inputFile=$2
+function help() {
+  echo "help"
+}
 
-if ! [[ -d ${outdir} ]]
+inputFile=
+mailTo=
+outdir=
+while getopts "hi:m:o:" opt
+do
+  case $opt in  
+    h) help
+			;;
+		i) inputFile=${OPTARG}
+			;;
+		m) mailTo=${OPTARG}
+			;;
+		o) outdir=${OPTARG}
+			;;
+  esac
+done
+
+if [[ -z ${inputFile} ]]
 then
-	echo "The output directory provided as the first positional argument does not exist. Exiting."
+	echo "-i is required."
+	help
+	exit 1
+fi
+
+if [[ -z ${mailTo} ]]
+then
+	echo "-m is required."
+	help
+	exit 1
+fi
+
+if [[ -z ${outdir} ]]
+then
+	echo "-o is required."
+	help
 	exit 1
 fi
 
@@ -59,7 +96,4 @@ sjm -i --mail ${mailTo} ${map_samples_sjm}
 #unload the genome
 unload_genome_sjm=unload_genome.sjm
 jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${unload_genome_sjm} --disable-all-except star_unload_genome --wait --run
-
-
-
 
