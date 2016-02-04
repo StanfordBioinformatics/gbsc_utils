@@ -88,7 +88,9 @@
 				"--outFilterMultimapNmax": 10,
 				"--outSAMstrandField": intronMotif",
 				"--outSAMattributes": NH HI AS nM NM MD XS",
-				"--outSAMtype": "BAM"
+				"--outSAMtype": "BAM",
+				"--outFilterType": "BySJout",
+				"--alignSoftClipAtReferenceEnds": "No"
 			}
 		},
 
