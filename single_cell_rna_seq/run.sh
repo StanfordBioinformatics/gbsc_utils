@@ -7,16 +7,19 @@
 ###
 #Nathaniel Watson
 #2016-02-02
-#
-# This program requires one positional argument, being the output directory. It must exist, otherwise the program will cease to execute."
-#
 ###
 
 module load jsonwf/current
 module load gbsc/gbsc_utils #exports GBSC_UTILS env. var.
 
 function help() {
-  echo "help"
+	echo "Required Arguments:"
+	echo "  -i"
+	echo "	Input file."
+	echo "  -m"
+	echo "	Email address for SGE job status notifications."
+	echo "  -o"
+	echo "	output directory for all results".
 }
 
 inputFile=
@@ -26,6 +29,7 @@ while getopts "hi:m:o:" opt
 do
   case $opt in  
     h) help
+			 exit 0
 			;;
 		i) inputFile=${OPTARG}
 			;;
