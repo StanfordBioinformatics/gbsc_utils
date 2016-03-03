@@ -3,7 +3,7 @@
 	"resources": {
 		"hg19_genome_dir": "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/indexes/STAR/2.4.2a/iGenomes/05_14_2014/",
 		"hg19_gtf_file":   "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/illumina_igenomes_homo_sapiens_ucsc_hg19.gtf",
-		"starModule": "STAR/2.4.2a"
+		"starModule": "STAR/2.5.1b"
 	},
 
   "globalQsub": {
