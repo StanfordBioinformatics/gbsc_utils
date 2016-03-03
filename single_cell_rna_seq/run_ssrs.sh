@@ -106,7 +106,8 @@ conf=${GBSC_UTILS}/single_cell_rna_seq/single_cell_rna_seq.json
 
 #Load the genome
 echo "Preparing to load the genome"
-jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${load_genome_sjm} --disable-all-except star_load_genome --wait --run
+jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${load_genome_sjm} --disable-all-except star_load_genome
+sjm -i --mail ${mailTo} ${load_genome_sjm} #call sjm explicitely rathe than add the --run --wait options to jsonWorkflow.py so that I can set the email notificaiton
 
 #map samples
 echo "Preparing to map the samples from the input file"
@@ -118,5 +119,6 @@ done < ${inputFile}
 sjm -i --mail ${mailTo} ${map_samples_sjm}
 
 #unload the genome
-jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${unload_genome_sjm} --disable-all-except star_unload_genome --wait --run
+#Won't hurt to leave the genome loaded
+#jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${unload_genome_sjm} --disable-all-except star_unload_genome --wait --run
 
