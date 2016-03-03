@@ -7,8 +7,6 @@
 	},
 
   "globalQsub": {
-		"-M": "nathankw@stanford.edu",
-		"-m": "a",
 		"-A": "cirm",
 		"-R": "y",
 		"-l": "h_rt=36:00:00"
@@ -88,7 +86,8 @@
 				"--outSAMattributes": "NH HI AS nM NM MD XS",
 				"--outSAMtype": "BAM Unsorted",
 				"--outFilterType": "BySJout",
-				"--alignSoftClipAtReferenceEnds": "No"
+				"--alignSoftClipAtReferenceEnds": "No",
+				"--limitBAMsortRAM": 20000000000
 			}
 		},
 
