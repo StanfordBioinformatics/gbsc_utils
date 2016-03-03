@@ -15,7 +15,10 @@ module load gbsc/gbsc_utils #exports GBSC_UTILS env. var.
 function help() {
 	echo "Required Arguments:"
 	echo "  -i"
-	echo "	Input file."
+	echo "	Input file containing indicating the datasets to run through the pipeline. Each row must contain"
+	echo "	two whitespace delimited fields representing the read1 FASTQ file and the read2 FASTQ file, in that"
+	echo "	order.  Each row represents a job and all jobs will be submitted to SGE to run in parallel. There"
+	echo "	should not be any blank lines in the file."
 	echo "  -m"
 	echo "	Email address for SGE job status notifications."
 	echo "  -o"
@@ -68,28 +71,44 @@ do
 	count=$(( $count + 1 ))
 	if [[ -z $read1 || -z $read2 ]]
 	then
-		echo "Error on line ${count} in input file ${inputFile}: There should not be any blank lines, and all lines must have two space delimited entries indicating the read1 FASTQ file and the read2 FASTQ file, respectively."
+		echo "Error on line ${count} in input file ${inputFile}: There should not be any blank lines, and all lines must have two whitespace delimited entries indicating the read1 FASTQ file and the read2 FASTQ file, respectively."
 		exit 1
 	fi
 done < ${inputFile}
 
-#prepare to load the genome
-load_genome_sjm=load_genome.sjm
+#Next, make sure the three SJM files that will be created don't exist already
 
-if [[ -f ${sjm} ]]
+load_genome_sjm=${outdir}/load_genome.sjm
+if [[ -f ${load_genome_sjm} ]]
 then
-	echo "SJM file ${sjm} already exists. Delete file and run the program again. Exiting."
+	echo "SJM file ${load_genome_sjm} already exists. Delete file and run the program again. Exiting."
+	#by default, if the SJM file already exists, JsonWf will append to it.
 	exit 1
 fi
+
+map_samples_sjm=${outdir}/map_samples.sjm
+if [[ -f ${map_samples_sjm} ]]
+then
+	echo "SJM file ${map_samples_sjm} already exists. Delete file and run the program again. Exiting."
+	#by default, if the SJM file already exists, JsonWf will append to it.
+	exit 1
+fi
+
+unload_genome_sjm=${outdir}/unload_genome.sjm
+if [[ -f ${unload_genome_sjm} ]]
+then
+	echo "SJM file ${unload_genome_sjm} already exists. Delete file and run the program again. Exiting."
+	#by default, if the SJM file already exists, JsonWf will append to it.
+	exit 1
 
 conf=${GBSC_UTILS}/single_cell_rna_seq/single_cell_rna_seq.json
 
 #Load the genome
+echo "Preparing to load the genome"
 jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${load_genome_sjm} --disable-all-except star_load_genome --wait --run
 
-#prepare to map the samples from the input file
-map_samples_sjm=map_samples.sjm
-
+#map samples
+echo "Preparing to map the samples from the input file"
 while read read1 read2
 do
 	jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${map_samples_sjm} --disable-all-except star_mapper
@@ -98,6 +117,5 @@ done
 sjm -i --mail ${mailTo} ${map_samples_sjm}
 
 #unload the genome
-unload_genome_sjm=unload_genome.sjm
 jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${unload_genome_sjm} --disable-all-except star_unload_genome --wait --run
 

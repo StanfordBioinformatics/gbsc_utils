@@ -1,9 +1,9 @@
 { 
 	"version": "1.0.0",
 	"resources": {
-		"hg19_genome_dir": "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/indexes/STAR/$version/iGenomes/05_14_2014",
+		"hg19_genome_dir": "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/indexes/STAR/2.4.2a/iGenomes/05_14_2014/",
 		"hg19_gtf_file":   "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/illumina_igenomes_homo_sapiens_ucsc_hg19.gtf",
-		"starModule": "STAR/2.5.1b"
+		"starModule": "STAR/2.4.2a"
 	},
 
   "globalQsub": {
@@ -13,11 +13,10 @@
 		"-R": "y",
 		"-l": "h_rt=36:00:00"
  	},
-	
 	"analyses": [
 
 		{
-			"analysis": star_index_genome",
+			"analysis": "star_index_genome",
 			"description": "Creates a genomic index, used when mapping reads to the reference.",
 			"program": "STAR",
 			"enable": 1,
@@ -29,11 +28,11 @@
 			},
 
 			"params": {
-				"--runThreadN" 10,
+				"--runThreadN": 10,
 				"--runMode": "genomeGenerate",
 				"--genomeDir": "${hg19_genome_dir}",
 				"--sjdbGTFfile": "${hg19_gtf_file",
-				"--genomeFastaFiles": ${genomeFastaFiles}
+				"--genomeFastaFiles": "${genomeFastaFiles}"
 			}
 		},
 
@@ -46,7 +45,7 @@
 			"modules": ["${starModule}"],
 
 			"qsub": {
-				"mem": "6G"
+				"mem": "35G"
 			},
 
 			"params": {
@@ -86,8 +85,8 @@
 				"--outReadsUnmapped": "Fastx",
 				"--outSAMmultNmax": 5,
 				"--outFilterMultimapNmax": 10,
-				"--outSAMstrandField": intronMotif",
-				"--outSAMattributes": NH HI AS nM NM MD XS",
+				"--outSAMstrandField": "intronMotif",
+				"--outSAMattributes": "NH HI AS nM NM MD XS",
 				"--outSAMtype": "BAM",
 				"--outFilterType": "BySJout",
 				"--alignSoftClipAtReferenceEnds": "No"
@@ -102,7 +101,7 @@
 			"modules": ["${starModule}"],
 			
 			"qsub": {
-				"mem": "100M",
+				"mem": "100M"
 			},
 
 			"dependencies": ["star_mapper"],
