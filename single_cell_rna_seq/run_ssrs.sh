@@ -15,7 +15,7 @@ module load gbsc/gbsc_utils #exports GBSC_UTILS env. var.
 function help() {
 	echo "Required Arguments:"
 	echo "  -i"
-	echo "	Input file containing indicating the datasets to run through the pipeline. Each row must contain"
+	echo "	Input file indicating the datasets to run through the pipeline. Each row must contain"
 	echo "	two whitespace delimited fields representing the read1 FASTQ file and the read2 FASTQ file, in that"
 	echo "	order.  Each row represents a job and all jobs will be submitted to SGE to run in parallel. There"
 	echo "	should not be any blank lines in the file."
@@ -100,6 +100,7 @@ then
 	echo "SJM file ${unload_genome_sjm} already exists. Delete file and run the program again. Exiting."
 	#by default, if the SJM file already exists, JsonWf will append to it.
 	exit 1
+fi
 
 conf=${GBSC_UTILS}/single_cell_rna_seq/single_cell_rna_seq.json
 
@@ -111,8 +112,8 @@ jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${load_genome_sjm} --dis
 echo "Preparing to map the samples from the input file"
 while read read1 read2
 do
-	jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${map_samples_sjm} --disable-all-except star_mapper
-done
+	jsonWorkflow.py -c ${conf} --outdir=${outdir} --jobNameMangling --sjmfile=${map_samples_sjm} --disable-all-except star_mapper read1=${read1} read2=${read2}
+done < ${inputFile}
 
 sjm -i --mail ${mailTo} ${map_samples_sjm}
 
