@@ -69,7 +69,7 @@
 			"dependencies": ["star_load_genome"],
 
 			"qsub": {
-				"mem": "6G",
+				"mem": "4G",
 				"slots": 15
 			},
 		
