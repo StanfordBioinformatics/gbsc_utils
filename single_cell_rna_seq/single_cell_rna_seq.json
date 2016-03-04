@@ -68,10 +68,11 @@
 
 			"qsub": {
 				"mem": "4G",
-				"slots": 15
+				"slots": 10
 			},
 		
 			"params": {
+				"--outTmpDir" : "${outdir}/_STARtmp_$(date +%sN)",
 				"--genomeLoad": "LoadAndKeep",
 				"--runThreadN": 15,
 				"--quantMode": "GeneCounts TranscriptomeSAM",
