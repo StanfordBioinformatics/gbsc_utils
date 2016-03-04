@@ -43,7 +43,7 @@
 			"modules": ["${starModule}"],
 
 			"qsub": {
-				"mem": "35G"
+				"mem": "30G"
 			},
 
 			"params": {
@@ -60,10 +60,6 @@
 			"modules": ["${starModule}"],
 			"inputFormat": "bam",
 
-			"outdirs": [
-				{"d_star_mapper": "${outdir}/star_mapper"}
-			],
-	
 			"dependencies": ["star_load_genome"],
 
 			"qsub": {
@@ -72,12 +68,11 @@
 			},
 		
 			"params": {
-				"--outTmpDir" : "${outdir}/_STARtmp_$(date +%sN)",
+				"--outTmpDir" : "${outdir}/_STARtmp_$(date +%s%N)",
 				"--genomeLoad": "LoadAndKeep",
 				"--runThreadN": 15,
 				"--quantMode": "GeneCounts TranscriptomeSAM",
 				"--genomeDir": "${hg19_genome_dir}",
-				"--outFileNamePrefix": "${d_star_mapper}",
 				"--readFilesIn": "${read1} ${read2}",
 				"--readFilesCommand": "gunzip -c",
 				"--outReadsUnmapped": "Fastx",

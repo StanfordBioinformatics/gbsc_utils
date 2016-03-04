@@ -16,9 +16,12 @@ function help() {
 	echo "Required Arguments:"
 	echo "  -i"
 	echo "	Input file indicating the datasets to run through the pipeline. Each row must contain"
-	echo "	two whitespace delimited fields representing the read1 FASTQ file and the read2 FASTQ file, in that"
-	echo "	order.  Each row represents a job and all jobs will be submitted to SGE to run in parallel. There"
-	echo "	should not be any blank lines in the file."
+	echo "	three whitespace delimited fields representing:"
+	echo "		1) One or more read1 FASTQ files delimited by a comma,"
+	echo "		2) One ore more read2 FASTQ files delimited by a comma, and"
+	echo "		3) The sample/job name. A directory will be created by this name within the folder path specified by the -o argument."
+	echo "		   The pipeline results will be stored in this folder. Note that the order of the read1 files should match the order of the read2 files in order to pair them positionally."
+	echo "	Each row represents a job and all jobs will be submitted to SGE to run in parallel. There should not be any blank lines in the file."
 	echo "  -m"
 	echo "	Email address for SGE job status notifications."
 	echo "  -o"
@@ -65,15 +68,28 @@ then
 fi
 
 #parse input file just to make sure it's conformable
+declare -A samples
 count=0
-while read read1 read2
+while read read1 read2 sampleName
 do
 	count=$(( $count + 1 ))
-	if [[ -z $read1 || -z $read2 ]]
+	if [[ -z $read1 || -z $read2 || -z $sampleName ]]
 	then
-		echo "Error on line ${count} in input file ${inputFile}: There should not be any blank lines, and all lines must have two whitespace delimited entries indicating the read1 FASTQ file and the read2 FASTQ file, respectively."
+		echo "Error on line ${count} in input file ${inputFile}: There should not be any blank lines, and all lines must have three whitespace delimited entries indicating the read1 FASTQ file(s) and the read2 FASTQ file(s) and the sampleName, respectively."
 		exit 1
 	fi
+
+	#check if there are any duplicate sample names, since each sample will be mapped in a folder by the same name
+	set +u 
+	#needed b/c will get an error stating 'unbound variable' if sampleName doesn't yet exist in the array
+	existingSample=${samples[${sampleName}]}
+	if [[ -n $existingSample ]]
+	then
+		echo "Error - Sample name ${sampleName} already exists in ${inputFile}."
+		exit 1
+	fi
+	set -u
+	samples[${sampleName}]=${count}
 done < ${inputFile}
 
 #Next, make sure the three SJM files that will be created don't exist already
@@ -111,9 +127,9 @@ sjm -i --mail ${mailTo} ${load_genome_sjm} #call sjm explicitely rathe than add 
 
 #map samples
 echo "Preparing to map the samples from the input file"
-while read read1 read2
+while read read1 read2 sampleName
 do
-	jsonWorkflow.py -c ${conf} --outdir=${outdir} --jobNameMangling --sjmfile=${map_samples_sjm} --disable-all-except star_mapper read1=${read1} read2=${read2}
+	jsonWorkflow.py -c ${conf} --outdir=${outdir}/${sampleName} --jobNameMangling --sjmfile=${map_samples_sjm} --disable-all-except star_mapper read1=${read1} read2=${read2}
 done < ${inputFile}
 
 sjm -i --mail ${mailTo} ${map_samples_sjm}
