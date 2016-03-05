@@ -6,13 +6,46 @@ from gbsc_utils import gbsc_utils
 
 conn = Connection()
 
+def getRunInfo(run):
+	"""
+	Function :
+	Args     : run - A sequencing run name.
+	Returns  :
+	"""
+	ri = conn.getruninfo(run)['run_info']
+	return ri
+
+def getLaneInfo(run,lane):
+	"""
+	Function : Returns the lane information from a lane on a sequencing run.
+	Args     : run - A sequencing run name.
+						 lane - int. Lane number.
+	Returns  : dict.
+	"""
+	ri = getRunInfo(run)
+	return ri['lanes'][str(lane)]
+
+def isSequencingFailed(run):
+	ri = getRunInfo(run)
+	run_status = ri["sequencing_run_status"]
+	if (run_status == "sequencing_failed") or (run_status == "sequencing_exception"):
+		return True
+	return False
+
+def isSequencingDone(run):
+	ri = getRunInfo(run)
+	run_status = ri["sequencing_run_status"]
+	if run_status == "sequencing_done":
+		return True
+	return False
+
 def getPipelineRuns(run):
 	"""
 	Function : Retrieves the finished and unfinished pipeline run IDs for the specified sequencing run from UHTS.
 	Args     : run - str. The name of a sequencing run.
 	Returns  : A two item tuple where the 1st item is a list of finished pipeline run IDs, and the 2nd is a list of unfinished pipeline run IDs.
 	"""
-	ri = conn.getruninfo(run)['run_info'] #ri = runInfo
+	ri = getRunInfo(run)
 
 	finishedRuns = []
 	notFinishedRuns = []
@@ -32,7 +65,7 @@ def getMaxPipelineRunId(run):
 	Args     : run - str. Sequencing run name.
 	Returns  : int, or the None object if no pipeline runs.
 	"""
-	ri = conn.getruninfo(run)['run_info']      #ri = runInfo
+	ri = getRunInfo(run)
 	pruns = ri['pipeline_runs']  #pruns = pipelineRuns
 	if not pruns:
 		return None
@@ -52,5 +85,5 @@ def setLatestPipelineRunToFinished(run):
 
 
 def isArchivingDone(run):
-	ri = conn.getruninfo(run)['run_info']
+	ri = getRunInfo(run)
 	return ri['archiving_done']
