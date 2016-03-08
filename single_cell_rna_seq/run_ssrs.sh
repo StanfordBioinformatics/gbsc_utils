@@ -154,8 +154,8 @@ do
 	#jsonWorkflow.py -c ${conf} --outdir=${outdir}/${sampleName} --jobNameMangling --sjmfile=${map_samples_sjm} --disable-all-except star_mapper read1=${read1} read2=${read2}
 	job_outdir=${outdir}/${sampleName}
 	sjmfile=${job_outdir}/map.sjm
-	sleep 1
-	jsonWorkflow.py --mail-to ${mailTo} -c ${conf} --outdir=${job_outdir} --sjmfile=${sjmfile} --disable-all-except star_mapper read1=${read1} read2=${read2} --run
+	jsonWorkflow.py --mail-to ${mailTo} -c ${conf} --outdir=${job_outdir} --sjmfile=${sjmfile} --disable-all-except star_mapper read1=${read1} read2=${read2} --run --wait
+	sleep 2
 done < ${inputFile}
 
 #unload the genome
