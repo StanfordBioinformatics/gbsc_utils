@@ -37,6 +37,7 @@ function help() {
 inputFile=
 mailTo=
 outdir=
+conf=
 while getopts "hc:i:m:o:" opt
 do
   case $opt in  
@@ -60,6 +61,12 @@ then
 	help
 	exit 1
 fi
+
+if ! [[ -f ${inputFile} ]]
+then
+	echo "Error: Input file ${inputFile} does not exist. Exiting"
+	exit 1
+fi 
 
 if [[ -z ${mailTo} ]]
 then
@@ -144,10 +151,12 @@ sjm -i --mail ${mailTo} ${load_genome_sjm} #call sjm explicitely rathe than add 
 echo "Preparing to map the samples from the input file"
 while read read1 read2 sampleName
 do
-	jsonWorkflow.py -c ${conf} --outdir=${outdir}/${sampleName} --jobNameMangling --sjmfile=${map_samples_sjm} --disable-all-except star_mapper read1=${read1} read2=${read2}
+	#jsonWorkflow.py -c ${conf} --outdir=${outdir}/${sampleName} --jobNameMangling --sjmfile=${map_samples_sjm} --disable-all-except star_mapper read1=${read1} read2=${read2}
+	job_outdir=${outdir}/${sampleName}
+	sjmfile=${job_outdir}/map.sjm
+	sleep 1
+	jsonWorkflow.py --mail-to ${mailTo} -c ${conf} --outdir=${job_outdir} --sjmfile=${sjmfile} --disable-all-except star_mapper read1=${read1} read2=${read2} --run
 done < ${inputFile}
-
-sjm -i --mail ${mailTo} ${map_samples_sjm}
 
 #unload the genome
 #Won't hurt to leave the genome loaded
