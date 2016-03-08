@@ -22,12 +22,12 @@
 			"modules": ["${starModule}"],
 			
 			"qsub": {
-				"mem": "4G",
-				"slots": 10
+				"mem": "30G",
+				"slots": 4
 			},
 
 			"params": {
-				"--runThreadN": 10,
+				"--runThreadN": 4,
 				"--runMode": "genomeGenerate",
 				"--genomeDir": "${newGenomeIndexDir}",
 				"--sjdbGTFfile": "${hg19_gtf_file}",
@@ -65,14 +65,14 @@
 			"dependencies": ["star_load_genome"],
 
 			"qsub": {
-				"mem": "2G",
-				"slots": 3 
+				"mem": "4G",
+				"slots": 8 
 			},
 		
 			"params": {
 				"--outTmpDir" : "${outdir}/_STARtmp_$(date +%s%N)",
 				"--genomeLoad": "LoadAndKeep",
-				"--runThreadN": 15,
+				"--runThreadN": 8,
 				"--quantMode": "GeneCounts TranscriptomeSAM",
 				"--genomeDir": "${hg19_genome_dir}",
 				"--readFilesIn": "${read1} ${read2}",
