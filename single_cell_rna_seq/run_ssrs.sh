@@ -12,6 +12,8 @@
 module load jsonwf/current
 module load gbsc/gbsc_utils #exports GBSC_UTILS env. var.
 
+conf_default=${GBSC_UTILS}/single_cell_rna_seq/single_cell_rna_seq.json
+
 function help() {
 	echo "Required Arguments:"
 	echo "  -i"
@@ -26,16 +28,22 @@ function help() {
 	echo "	Email address for SGE job status notifications."
 	echo "  -o"
 	echo "	output directory for all results".
+	echo	
+	echo "Optional Arguments:"
+	echo "  -c"
+	echo "	The path to the JSON configuration/workflow file. Default is ${conf_default}."
 }
 
 inputFile=
 mailTo=
 outdir=
-while getopts "hi:m:o:" opt
+while getopts "hc:i:m:o:" opt
 do
   case $opt in  
     h) help
 			 exit 0
+			;;
+		c) conf=${OPTARG}
 			;;
 		i) inputFile=${OPTARG}
 			;;
@@ -65,6 +73,13 @@ then
 	echo "-o is required."
 	help
 	exit 1
+fi
+
+if [[ -n ${conf} ]]
+then
+	conf=${conf}
+else
+	conf=${conf_default}
 fi
 
 #parse input file just to make sure it's conformable
