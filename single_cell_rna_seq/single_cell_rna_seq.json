@@ -70,7 +70,7 @@
 			},
 		
 			"params": {
-				"--outTmpDir" : "${outdir}/_STARtmp_$(date +%s%N)",
+				"#--outTmpDir" : "${outdir}/_STARtmp_$(date +%s%N)",
 				"--genomeLoad": "LoadAndKeep",
 				"--runThreadN": 8,
 				"--quantMode": "GeneCounts TranscriptomeSAM",
