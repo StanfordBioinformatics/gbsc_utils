@@ -140,8 +140,6 @@ then
 	exit 1
 fi
 
-conf=${GBSC_UTILS}/single_cell_rna_seq/single_cell_rna_seq.json
-
 #Load the genome
 echo "Preparing to load the genome"
 jsonWorkflow.py -c ${conf} --outdir=${outdir} --sjmfile=${load_genome_sjm} --disable-all-except star_load_genome
