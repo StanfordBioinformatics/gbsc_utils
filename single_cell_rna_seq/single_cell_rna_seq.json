@@ -1,9 +1,10 @@
 { 
 	"version": "1.0.0",
 	"resources": {
-		"hg19_genome_dir": "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/indexes/STAR/2.4.2a/iGenomes/05_14_2014/",
+		"hg19_genome_dir": "/srv/gsfs0/projects/cescg/RefGenomes/H_sapiens/hg19/indexes/STAR/2.5.1b",
 		"hg19_gtf_file":   "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/illumina_igenomes_homo_sapiens_ucsc_hg19.gtf",
-		"starModule": "STAR/2.5.1b"
+		"starModule": "STAR/2.5.1b",
+		"genomeFastaFile":  "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/hg19.fa"
 	},
 
   "globalQsub": {
@@ -21,16 +22,17 @@
 			"modules": ["${starModule}"],
 			
 			"qsub": {
-				"mem": "2G",
+				"mem": "4G",
 				"slots": 10
 			},
 
 			"params": {
 				"--runThreadN": 10,
 				"--runMode": "genomeGenerate",
-				"--genomeDir": "${hg19_genome_dir}",
-				"--sjdbGTFfile": "${hg19_gtf_file",
-				"--genomeFastaFiles": "${genomeFastaFiles}"
+				"--genomeDir": "${newGenomeIndexDir}",
+				"--sjdbGTFfile": "${hg19_gtf_file}",
+				"--genomeFastaFiles": "${genomeFastaFile}",
+				"--sjdbOverhang": 90
 			}
 		},
 
@@ -63,8 +65,8 @@
 			"dependencies": ["star_load_genome"],
 
 			"qsub": {
-				"mem": "4G",
-				"slots": 10
+				"mem": "2G",
+				"slots": 3 
 			},
 		
 			"params": {
@@ -95,7 +97,7 @@
 			"modules": ["${starModule}"],
 			
 			"qsub": {
-				"mem": "100M"
+				"mem": "30GB"
 			},
 
 			"dependencies": ["star_mapper"],
