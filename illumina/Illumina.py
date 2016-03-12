@@ -182,13 +182,3 @@ class BclSampleSheet:
 		
 
 
-
-
-
-
-
-
-
-
-			
-

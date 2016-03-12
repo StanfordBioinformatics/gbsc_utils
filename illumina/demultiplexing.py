@@ -6,7 +6,14 @@ import csv
 import re
 import glob
 from pprint import pprint
-from gbsc_utils.illumina import fastq_file_name as ffn
+
+
+###
+#2016-03-11
+print("Warning: {mod} is not defunct".format(mod=__file__))
+#Note that this module is now defunct. It's better to not relay on the output naming and path logic tied to versions of the demultiplexer, and all the exceptions to the naming and locations.
+#Instead it's best to do a recursive find on the output directory for all FASTQ files.
+###
 
 class SampleSheetException(Exception):
 	pass
@@ -308,6 +315,7 @@ class V2:
 	"""
 
 	#If no sample sheet is provided, all reads are saved in Undetermined_S0_* FASTQ files (UG), i.e. Undetermined_S0_L001_R1_001.fastq.gz or Undetermined_S0_L001_R2_001.fastq.gz.
+	#Also, if a SampleSheet is given with at least one barcoded sample, then the unmatched reads will still be output in fles as named above, in the directory specified by --output-dir.
 	#Sample_ID and Sample_Name may only contain alpha-numerics and '-' and '_'.
 	#It is possible to assign samples without index to Sample_ID or other identifiers by leaving the Index field empty (but unlike V1, this must be the only entry in the SampleSheet!)
 	#SAMPLE SHEET DETAILS
