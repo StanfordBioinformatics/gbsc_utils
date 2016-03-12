@@ -10,8 +10,9 @@ import os
 
 
 class Field:
-	def __init__(self,pos,value=False):
+	def __init__(self,pos,value=""):
 		self.pos = pos
+		self.value = value
 
 dico = {
 	"RunID": Field(pos=1),
@@ -58,61 +59,38 @@ def calcDemStats(demFile):
 	dico["ReadsPF"].value = str(int(pf))
 	dico["ReadsPF%"].value = str(pfPerc)
 
-desc = "Outputs stats for an Illumina sequencing run. Stats come from specific tags in the XML files runParameters.xml (which is in top-level run directory) and DemultiplexedBustardSummary.xml (which is in each demultiplexed directory). If the stats file doesn't exist or exists with 0 size, then the header line is added. This allows for multiple runs of this program to output to the same stats file, w/o repeated header lines. Currently, only HiSeq runs are supported.  Support will be added for MiSeq runs. The stats that are output are listed below.\nOutput Stats:"
+desc = "Outputs stats for an Illumina sequencing run. Stats come from specific tags in the XML files runParameters.xml (which is in top-level run directory). The file DemultiplexedBustardSummary.xml (which is in the output directory of the v1 version of the demultiplexer) was originally also parsed for the additional stats fields of the number of raw reads, PF reads, and %PF reads, however, this is no longer the case. The reason is that the equivalent file ConversionStats.xml output in V2 of the demultiplexer doens't contain these overall summary stats, rather just the per-tile based stats, and in order for this script to support output from v1 and v2, it will only parse stats from the runParameters.xml file. If the output stats file doesn't exist or exists with 0 size, then the header line is added. This allows for multiple runs of this program to output to the same stats file, w/o repeated header lines. Currently, only HiSeq runs are supported.  Support will be added for MiSeq runs. The stats that are output are listed below.\nOutput Stats:"
 count = -1
 for i in header:
 	count += 1
 	desc += "\t{count}) {i}\n".format(count=count,i=i)
 
 parser = argparse.ArgumentParser(description=desc,formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('-d',help="The DemultiplexedBustardSummary.xml file. Required when --run not specified.")
 parser.add_argument("-r",help="The runParamaters.xml file. Required when --run not specified.")
 parser.add_argument('-o','--outfile',required=True,help="Output file")
 parser.add_argument('-a','--append-output',default="w",action="store_const",const="a",help="Don't overwrite --outfile if it exists already, rather, append to it.")
-parser.add_argument('--run-name',help="Run Name. Output statistics for all demultiplexed directories in this specified run. Required when -d and -r not supplied.")
+parser.add_argument('--run-name',help="Run Name. Output statistics for all demultiplexed directories in this specified run. Required when -c and -r not supplied.")
 parser.add_argument("--runs-path",default="/srv/gsfs0/projects/seq_center/Illumina/RunsInProgress",help="The directory path the a run specified with --run (not including --run itself). Defaults to $(default)s")
-parser.add_argument("--demultiplex-dir-prefix",default="Unaligned",help="Used only when --run-name specified. Demultiplexed directory prefix name. For each demultiplexed directory within the run directory that matches this prefix, statistics will be gathered for it. Default is $(default)s.")
+parser.add_argument("--demux-dir",help="Full path. Used only when --run-name specified. Essentially, this is the value of the --output-dir argument of the demultiplexer.")
 
 args = parser.parse_args()
 runName = args.run_name
 runsPath = args.runs_path
-demDirPrefix = args.demultiplex_dir_prefix
-demFiles = args.d
-if demFiles:
-	demFiles = [demFiles]
-else:
-	demFiles = []
-runFile = args.r
-if (runName and demFiles) or (runName and runFile):
-	parser.error("You must supply the --run argument or both -d and -r, not any other combination.")
-if runFile and not demFiles:
-	parser.error("You must supply the -d argument when -r is supplied.")
-if demFiles and not runFile:
-	parser.error("You must supply the -r argument when -d is supplied.")
-
+demuxDir = args.demux_dir
+runParamsFile = args.r
+if runName and not demuxDir:
+	parser.error("You must supply --demux-dir when -r is specified, and vice versa.")
 
 if runName:
-	runsPath = os.path.join(runsPath,runName)
+	runDir = os.path.join(runsPath,runName)
+	runParamsFile = os.path.join(runDir,"runParameters.xml")
+
+#calcDemStats(bustardSummaryFile)
 
 outfile = args.outfile
 mode = args.append_output
 
-x = list(dico.items())[0]
-header = [x[0] for x in sorted(list(dico.items()),key = getItem)]
-
-outputHeader = False
-if not os.path.exists(outfile) or not os.getsize(outfile):
-	outputHeader = True
-fout = open(outfile,mode)
-if outputHeader:
-	for i in header:
-		fout.write(i + "\t")
-	fout.write("\n")
-
-if runName:
-	runFile = os.path.join(runsPath,"runParameters.xml")
-
-tree = etree.parse(runFile)
+tree = etree.parse(runParamsFile)
 root = tree.getroot().find("Setup")
 
 dico["RunID"].value = root.find("RunID").text
@@ -133,13 +111,22 @@ appVersion = root.find("ApplicationVersion").text
 dico["ControlSoftware"].value = appName + ":" + appVersion
 dico["RTAVersion"].value = root.find("RTAVersion").text
 
-demDirs = glob.glob(os.path.join(runsPath,demDirPrefix) + "*")
-for d in demDirs:
-	demFile = os.path.join(d,"DemultiplexedBustardSummary.xml")
-	demFiles.append(demFile)
-for d in demFiles:
-	calcDemStats(d)
+header = [x[0] for x in sorted(list(dico.items()),key = getItem)]
+
+outputHeader = False
+if not os.path.exists(outfile) or not os.path.getsize(outfile):
+	outputHeader = True
+
+fout = open(outfile,mode)
+
+if outputHeader:
+	headerLine = ""
 	for i in header:
-		fout.write(dico[i].value + "\t")
-	fout.write("\n")
+		headerLine += i + "\t"
+	headerLine.rstrip("\t")
+	fout.write(headerLine + "\n")
+
+for i in header:
+	fout.write(dico[i].value + "\t")
+fout.write("\n")
 fout.close()
