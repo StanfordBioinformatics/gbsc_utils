@@ -71,15 +71,13 @@ parser.add_argument('-o','--outfile',required=True,help="Output file")
 parser.add_argument('-a','--append-output',default="w",action="store_const",const="a",help="Don't overwrite --outfile if it exists already, rather, append to it.")
 parser.add_argument('--run-name',help="Run Name. Output statistics for all demultiplexed directories in this specified run. Required when -c and -r not supplied.")
 parser.add_argument("--runs-path",default="/srv/gsfs0/projects/seq_center/Illumina/RunsInProgress",help="The directory path the a run specified with --run (not including --run itself). Defaults to $(default)s")
-parser.add_argument("--demux-dir",help="Full path. Used only when --run-name specified. Essentially, this is the value of the --output-dir argument of the demultiplexer.")
+#parser.add_argument("--demux-dir",help="Full path. Used only when --run-name specified. Essentially, this is the value of the --output-dir argument of the demultiplexer.")
 
 args = parser.parse_args()
 runName = args.run_name
 runsPath = args.runs_path
-demuxDir = args.demux_dir
+#demuxDir = args.demux_dir
 runParamsFile = args.r
-if runName and not demuxDir:
-	parser.error("You must supply --demux-dir when -r is specified, and vice versa.")
 
 if runName:
 	runDir = os.path.join(runsPath,runName)
@@ -94,11 +92,14 @@ tree = etree.parse(runParamsFile)
 root = tree.getroot().find("Setup")
 
 dico["RunID"].value = root.find("RunID").text
-dico["PairedEnd"].value = root.find("PairEndFC").text
 dico["R1Cycles"].value = root.find("Read1").text
 dico["R2Cycles"].value = root.find("Read2").text
 dico["IR1Cycles"].value = root.find("IndexRead1").text
 dico["IR2Cycles"].value = root.find("IndexRead2").text
+pairedEnd = "No"
+if int(dico["R2Cycles"].value) > 0:
+	pairedEnd = "Yes"
+dico["PairedEnd"].value = pairedEnd
 dico["BarcodeKit"].value = rmSpaces(root.find("Index").text)
 try:
 	dico["ClusterKit"].value = rmSpaces(root.find("Pe").text)
