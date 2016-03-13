@@ -84,6 +84,7 @@
 				"--outSAMattributes": "NH HI AS nM NM MD XS",
 				"--outSAMtype": "BAM Unsorted",
 				"--outFilterType": "BySJout",
+				"--chimSegmentMin" : 20,
 				"--alignSoftClipAtReferenceEnds": "No",
 				"--limitBAMsortRAM": 20000000000
 			}
