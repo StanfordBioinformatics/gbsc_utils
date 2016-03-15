@@ -1,0 +1,112 @@
+{ 
+	"version": "1.0.0",
+	"resources": {
+		"hg19_genome_dir": "/srv/gsfs0/projects/cescg/RefGenomes/H_sapiens/hg19/indexes/STAR/2.5.1b",
+		"hg19_gtf_file":   "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/illumina_igenomes_homo_sapiens_ucsc_hg19.gtf",
+		"starModule": "STAR/2.5.1b",
+		"genomeFastaFile":  "/srv/gsfs0/shared_data/RefGenomes/H_sapiens/hg19/hg19.fa"
+	},
+
+  "globalQsub": {
+		"-A": "cirm",
+		"-R": "y",
+		"-l": "h_rt=36:00:00"
+ 	},
+	"analyses": [
+
+		{
+			"analysis": "star_index_genome",
+			"description": "Creates a genomic index, used when mapping reads to the reference.",
+			"program": "STAR",
+			"enable": 1,
+			"modules": ["${starModule}"],
+			
+			"qsub": {
+				"mem": "30G",
+				"slots": 4
+			},
+
+			"params": {
+				"--runThreadN": 4,
+				"--runMode": "genomeGenerate",
+				"--genomeDir": "${newGenomeIndexDir}",
+				"--sjdbGTFfile": "${hg19_gtf_file}",
+				"--genomeFastaFiles": "${genomeFastaFile}",
+				"--sjdbOverhang": 90
+			}
+		},
+
+
+		{ 
+			"analysis": "star_load_genome",
+			"description": "Load the genome into memory for all subsequent mapping jobs to use.",
+			"program": "STAR",
+			"enable": 1,
+			"modules": ["${starModule}"],
+
+			"qsub": {
+				"mem": "30G"
+			},
+
+			"params": {
+				"--genomeDir": "${hg19_genome_dir}",
+				"--genomeLoad": "LoadAndExit"
+			}
+		},
+
+		{
+			"analysis": "star_mapper",
+			"description": "Splice-aware aligner",
+			"program": "STAR",
+			"enable": 1,
+			"modules": ["${starModule}"],
+			"inputFormat": "bam",
+
+			"dependencies": ["star_load_genome"],
+
+			"qsub": {
+				"mem": "4G",
+				"slots": 8
+			},
+		
+			"params": {
+				"#--outTmpDir" : "${outdir}/_STARtmp_$(date +%s%N)",
+				"--genomeLoad": "LoadAndKeep",
+				"--runThreadN": 8,
+				"--quantMode": "GeneCounts TranscriptomeSAM",
+				"--genomeDir": "${hg19_genome_dir}",
+				"--readFilesIn": "${read1} ${read2}",
+				"--readFilesCommand": "gunzip -c",
+				"--outReadsUnmapped": "Fastx",
+				"--outSAMmultNmax": 5,
+				"--outFilterMultimapNmax": 10,
+				"--outSAMstrandField": "intronMotif",
+				"--outSAMattributes": "NH HI AS nM NM MD XS",
+				"--outSAMtype": "BAM Unsorted",
+				"--outFilterType": "BySJout",
+				"--chimSegmentMin" : 20,
+				"--alignSoftClipAtReferenceEnds": "No",
+				"--limitBAMsortRAM": 20000000000
+			}
+		},
+
+		{
+			"analysis": "star_unload_genome",
+			"description": "Removes the loaded genome from memory.",
+			"program": "STAR",
+			"enable": 0,
+			"modules": ["${starModule}"],
+			
+			"qsub": {
+				"mem": "30GB"
+			},
+
+			"dependencies": ["star_mapper"],
+		
+			"params": {
+				"--genomeDir": "${hg19_genome_dir}",
+				"--genomeLoad": "Remove"
+			}
+		}
+	]
+}
