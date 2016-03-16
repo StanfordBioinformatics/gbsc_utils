@@ -9,7 +9,7 @@ import shutil
 
 COMPLETED_RUNS_PATH = "/seqctr/Runs/Runs_Completed"
 ABORTED_RUNS_PATH = "/seqctr/Runs/Runs_Aborted"
-DAYS_AGE_LIMIT = 30
+DAYS_AGE_LIMIT = 75
 
 
 logger = logging.getLogger(__name__)
