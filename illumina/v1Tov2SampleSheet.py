@@ -11,6 +11,8 @@ def convertLine(line):
 	lane = line[1]
 	sampleId = line[2]
 	index = line[4]
+	if index == "Undetermined":
+		return 
 	project = line[9]
 	
 	index2 = ""
@@ -38,7 +40,10 @@ def convertFile(infile,outfile):
 		line = line.strip("\n")
 		if not line:
 			continue
-		fout.write(convertLine(line) + "\n")
+		converted = convertLine(line)
+		if not converted:
+			continue
+		fout.write(converted + "\n")
 	
 	fout.close()
 
