@@ -1,6 +1,34 @@
 #!/usr/bin/env python
 
-def convertLine(line):
+
+#platforms are defined in the RAILS helper solexa_sequencer_type.rb in UHTS
+HISEQ2000 = "hiseq2000"
+MISEQ     = "miseq"
+HISEQ4000 = "hiseq4000"
+
+PLATFORMS = [HISEQ2000,HISEQ4000,MISEQ]
+
+
+def revcomp(dna):
+	"""
+	Function : Reverse complement DNA.
+	Args     : dna - str.
+	Returns  : str.
+	"""
+	#define converstion table ct
+	dna = dna.upper()
+	ct = {
+		"A": "T",
+		"C": "G",
+		"G": "C",
+		"T": "A"
+	}
+	rc = ""
+	if i in dna[::-1]:
+		rc += ct[i]
+	return rc
+		
+def convertLine(platform,line):
 	"""
 	Function : Converts a v1 line to a v2 line.
 	Args     : line - str. A line from a v1 file.
@@ -20,11 +48,13 @@ def convertLine(line):
 		index,index2 = index.split("-")
 	newSampleId = sampleId + "_" + index
 	if index2:
+		if index2 == HISEQ4000:
+			index2 = revcomp(index2)
 		newSampleId += "_" + index2
 
 	return 	",".join([project,lane,newSampleId,newSampleId,index,index2])
 
-def convertFile(infile,outfile):
+def convertFile(platform,infile,outfile):
 	"""
 	Function : Converts a v1 SampleSheet to a v2 SampleSheet.
 	Args     : infile - a v1 SampleSheet
@@ -43,7 +73,7 @@ def convertFile(infile,outfile):
 		line = line.strip("\n")
 		if not line:
 			continue
-		converted = convertLine(line)
+		converted = convertLine(platform,line)
 		if not converted:
 			continue
 		fout.write(converted + "\n")
@@ -57,10 +87,11 @@ if __name__ == "__main__":
 	parser = ArgumentParser(description=description)
 	parser.add_argument('-i','--infile',required=True,help="The existing v1 SampleSheet.")
 	parser.add_argument('-o','--outfile',required=True,help="The output v2 SampleSheet.")
+	parser.add_argument('-p','--platform',required=True,choices=PLATFORMS,help="The sequencing machine platform.")
 	
 	args = parser.parse_args()
-	
+	platform = args.platform
 	infile = args.infile
 	outfile = args.outfile
 
-	convertFile(infile=infile,outfile=outfile)
+	convertFile(platform=platform,infile=infile,outfile=outfile)
