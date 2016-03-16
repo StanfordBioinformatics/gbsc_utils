@@ -18,8 +18,11 @@ def convertLine(line):
 	index2 = ""
 	if index.find("-") >= 0:
 		index,index2 = index.split("-")
+	newSampleId = sampleId + "_" + index
+	if index2:
+		newSampleId += "_" + index2
 
-	return 	",".join([project,lane,sampleId,sampleId,index,index2])
+	return 	",".join([project,lane,newSampleId,newSampleId,index,index2])
 
 def convertFile(infile,outfile):
 	"""
