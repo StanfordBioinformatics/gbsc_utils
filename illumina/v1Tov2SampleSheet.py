@@ -48,7 +48,7 @@ def convertLine(platform,line):
 		index,index2 = index.split("-")
 	newSampleId = sampleId + "_" + index
 	if index2:
-		if index2 == HISEQ4000:
+		if platform == HISEQ4000:
 			index2 = revcomp(index2)
 		newSampleId += "_" + index2
 
