@@ -24,7 +24,7 @@ def revcomp(dna):
 		"T": "A"
 	}
 	rc = ""
-	for i in dna[::-1];
+	for i in dna[::-1]:
 		rc += ct[i]
 	return rc
 		
