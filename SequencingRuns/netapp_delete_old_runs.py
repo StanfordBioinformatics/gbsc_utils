@@ -9,7 +9,7 @@ import shutil
 
 COMPLETED_RUNS_PATH = "/seqctr/Runs/Runs_Completed"
 ABORTED_RUNS_PATH = "/seqctr/Runs/Runs_Aborted"
-DAYS_AGE_LIMIT = 75
+DAYS_AGE_LIMIT = 45
 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +38,7 @@ for run_folder in completed_runs + aborted_runs:
       logger.critical("Can't delete folder in path {dirname} - disallowed. Exiting.".format(dirname=dirname))
       sys.exit(1)
 
-    logger.info("Deleting run {run}.".format(run=run_folder))
-    shutil.rmtree(run_folder)
-    logger.info("Successfully deleted run {run}.".format(run=run_folder))
+    logger.info("Deleting Data dir in run {run}.".format(run=run_folder))
+    dataDir = os.path.join(run_folder,"Data")
+    shutil.rmtree(dataDir)
+    logger.info("Successfully deleted Data dir in run {run}.".format(run=run_folder))
