@@ -29,7 +29,7 @@ def processEmailAddrs(addresses):
 sendersFile = os.path.join(os.path.dirname(__file__),"senders.json")
 ZWENG=["zweng@stanford.edu"]
 allSenders = json.load(open(sendersFile,'r'))
-ccDefault = "scg-informatics-seq@lists.stanford.edu"
+ccDefault = "scg-informatics-seq@lists.stanford.edu scgpm-seq-submission@lists.stanford.edu"
 parser = ArgumentParser()
 parser.add_argument("--to",nargs="+",required=True,help="One or more space-delimited recipient email addresses.")
 parser.add_argument("--cc",nargs="+",default=ccDefault,help="one ore more space-delimited CC addresses. Default is '%(default)s'.")
