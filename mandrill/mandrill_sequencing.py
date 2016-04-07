@@ -29,10 +29,10 @@ def processEmailAddrs(addresses):
 sendersFile = os.path.join(os.path.dirname(__file__),"senders.json")
 ZWENG=["zweng@stanford.edu"]
 allSenders = json.load(open(sendersFile,'r'))
-ccDefault = "scg-informatics-seq@lists.stanford.edu"
+ccDefault = "scg-informatics-seq@lists.stanford.edu scgpm-seq-submission@lists.stanford.edu"
 parser = ArgumentParser()
 parser.add_argument("--to",nargs="+",required=True,help="One or more space-delimited recipient email addresses.")
-parser.add_argument("--cc",nargs="+",default=ccDefault,help="one ore more space-delimited CC addresses. Default is '%(default)s'.")
+parser.add_argument("--cc",nargs="+",default=ccDefault,help="One ore more space-delimited CC addresses. Default is '%(default)s'. Emails will always be sent to the default, so you can only extend the default recipients list.")
 parser.add_argument("-z",action="store_true",help="Presence of this option means to add Ziming Weng's email '{ZWENG} to the CC list. This is essentially a short cut so you don't have to memorize it.".format(ZWENG=ZWENG))
 parser.add_argument("--subject",help="The subject of the email message.")
 parser.add_argument("--add",help="Additional text to add to the top of the message. Any whitespace will be stripped and two newline characters will be added to the end before the standard body of the email is appended.")
@@ -67,10 +67,7 @@ if subject:
 	subject = subject.strip()
 lanes = args.lanes
 ccs = args.cc
-if type(ccs) == str: #happens when default is used
-	ccs = [ccs]
-ccs = [x for x in ccs if x] #ignore empty elements in the list. For example, if the user specifies --cc "", then that will create a list with an empty string.
-ccs.append(ccDefault)
+ccs.extend(ccDefault)
 ccs = set(ccs)
 recipients = args.to
 recipients = processEmailAddrs(recipients)
@@ -139,6 +136,14 @@ if ccs:
 message["subject"] = subject
 message["html"] = htmlBody
 if not dryRun:
-	result = mandrill_client.messages.send(message=message, async=False) #
+	try:
+		results = mandrill_client.messages.send(message=message, async=False) #
+		for result in results:
+			status = result['status']
+			if status != "sent":
+				print("Message could not be delivered to the following recipient: {result}.".format(result=result))
+	except mandrill.Error, e:
+		# Mandrill errors are thrown as exceptions
+		print 'A mandrill error occurred: %s - %s' % (e.__class__, e)
 	#note regarding async parameter:
 	# Defaults to false for messages with no more than 10 recipients; messages with more than 10 recipients are always sent asynchronously, regardless of the value of async.
