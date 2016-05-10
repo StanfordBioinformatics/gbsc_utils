@@ -25,10 +25,10 @@ dico = {
 	"R1Cycles": Field(pos=8),
 	"R2Cycles": Field(pos=9),
 	"IR1Cycles": Field(pos=10),
-	"IR2Cycles": Field(pos=11),
-	"ReadsRaw": Field(pos=12),
-	"ReadsPF": Field(pos=13),
-	"ReadsPF%": Field(pos=14)
+	"IR2Cycles": Field(pos=11)
+#	"ReadsRaw": Field(pos=12),
+#	"ReadsPF": Field(pos=13),
+#	"ReadsPF%": Field(pos=14)
 }
 
 def rmSpaces(txt):
