@@ -83,7 +83,7 @@ def getRunYearMonth(run):
 	Function : Given a run name that begins with a date of the format YYMMDD, i.e. 120124_ROCKFORD_00123_FC64DHK,
 						 parses out the year and and month.
 	Args     : The run name
-	Returns  : two-item tuple. The first item is the four-ditig year. The second is the month as a lower-case three-letter string (abbreviation).
+	Returns  : two-item tuple. The first item is the four-digit year. The second is the month as a lower-case three-letter string (abbreviation).
 	"""
 	digits = run.split("_")[0]
 	year = "20" + digits[:2]
@@ -164,7 +164,7 @@ def getPubPath(run,lane=None):
 		if not os.path.exists(oldpubdir):
 			raise OSError("Published directory for run {run} does not exist. Checked old published path {oldpubdir} and new published path {pubdir}.".format(run=run,oldpubdir=oldpubdir,pubdir=pubdir))
 	if lane:
-		lanedir = os.path.join(rundir, "L" + lane)
+		lanedir = os.path.join(rundir,lane)
 		return lanedir
 	return rundir
 
@@ -202,6 +202,11 @@ def getBamFilePath(rundir,fileName):
 		return path2
 	elif os.path.exists(path2 + ".gz"):
 		return path2 + ".gz"
+	#for HiSeq 4000s that was run through the JsonWf pipeline at gbsc/gbsc_utils/bwa_pipeline/run.py 
+	path3 = os.path.join(rundir,"bwa_mem",lane,fileName.split("_pf")[0] + ".coordSorted.clean.dedup.bam")
+	print(path3)
+	if os.path.exists(path3):
+		return path3
 	else:
 		return None
 
