@@ -185,8 +185,7 @@ def getLaneStatsFile(run,lane):
 
 def getBamFilePath(rundir,fileName):
 	"""
-	Function : Tries to find a BAM file in a given run directory in the given rundir. The main purpose of this function is to check for the BAM file in two places: first, immediately
-					   within the run directory (where they used to be back in 2012), second, within a lane subdirectory. Checkes if they are gzip'd.
+	Function : Tries to find a BAM file in a given run directory in the given rundir. The main purpose of this function is to check for the BAM file in three places: first, immediately within the run directory (where they used to be back in 2012), second, within a lane subdirectory. Third within a directory of the path $rundir/bwa_mem/$lane as output by the bwa_mem JsonWF pipeline at gbsc/gbsc_utils/bwa_pipeline/run.py.  Checkes if they are gzip'd.
 	Args     : rundir - path to the run directory (i.e. could be a published path or an archive path)
 						 fileName - the name of the BAM file to look for (no directory path prefix) in the run directory specified by the rundir argument.
 	"""
