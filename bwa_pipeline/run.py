@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import sys
 import logging
@@ -37,7 +38,7 @@ for line in fh:
 	if not line:
 		continue
 	read1,read2,sam = line.split("\t")
-	modtime = datetime.datetime.fromtimestamp(os.path.getmtime(sam))
+	#modtime = datetime.datetime.fromtimestamp(os.path.getmtime(sam))
 	#if os.path.exists(sam) and modtime.date() != datetime.datetime.now().date():
 	if os.path.exists(sam):
 		continue
