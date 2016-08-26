@@ -150,8 +150,7 @@ def getPubPath(run,lane=None):
 	Args     : run - run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
 						 lane - Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have
                     preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
-	Returns  : str
-	Raises   : OSError if run can't be located.
+	Returns  : str. Will be empty if the published path doesn't exist.
 	"""
 	year,month = getRunYearMonth(run)
 	pubdir = os.path.join(pubDir,year,month,run)
@@ -162,7 +161,7 @@ def getPubPath(run,lane=None):
 		oldpubdir = os.path.join(oldPubDir,year,month,run)	
 		rundir = oldpubdir
 		if not os.path.exists(oldpubdir):
-			raise OSError("Published directory for run {run} does not exist. Checked old published path {oldpubdir} and new published path {pubdir}.".format(run=run,oldpubdir=oldpubdir,pubdir=pubdir))
+			return ""
 	if lane:
 		lanedir = os.path.join(rundir,lane)
 		return lanedir
