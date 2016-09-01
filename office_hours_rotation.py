@@ -1,12 +1,18 @@
 #!/usr/bin/env python
+
+###
+#Nathaniel Watson
+#nathankw@stanford.edu
+#2016-08-31
+###
+
 import itertools
 import random
+from argparse import ArgumentParser
 
-"""
-Generates a rotation list for SCG Office Hours. Given the list of office hours representatives (stored in NAMES), uses the random.combination()
-method to select all combinations of size two from NAMES. Then, tries to randomize the rotation list by requiring that no two consecutive office hour
-sessions  have the same representative in both.
-"""
+description = "Generates a rotation list for SCG Office Hours. Given the list of office hours representatives (stored in NAMES), uses the random.combination() method to select all combinations of size two from NAMES. Then, tries to randomize the rotation list by requiring that no two consecutive office hour sessions  have the same representative in both."
+parser = ArgumentParser(description=description)
+parser.parse_args()
 
 def print_rotation(rotation):
 	"""
