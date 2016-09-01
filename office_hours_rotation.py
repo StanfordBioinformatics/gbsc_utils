@@ -3,6 +3,9 @@ import itertools
 import random
 
 def print_rotation(rotation):
+	"""
+	Args - rotation : list. Each element is a list or tupuble of size 2 containing two names from the NAMES list.
+	"""
 	for i in rotation:
 		print("{}\t{}".format(i[0],i[1]))
 
