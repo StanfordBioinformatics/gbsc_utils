@@ -6,11 +6,11 @@ def print_rotation(rotation):
 	for i in rotation:
 		print("{}\t{}".format(i[0],i[1]))
 
-names = ['Ramesh', 'Watson', 'Paul', 'Isaac', 'Amin', 'Keith']
-if len(names) <4:
-	raise Exception("There aren't enough person in the names list for this rotation generator to work.")
+NAMES = ['Ramesh', 'Watson', 'Paul', 'Isaac', 'Amin', 'Keith']
+if len(NAMES) <4:
+	raise Exception("There aren't enough person in the NAMES list for this rotation generator to work.")
 
-gen = itertools.combinations(names,2)
+gen = itertools.combinations(NAMES,2)
 combs = list(gen)
 random.shuffle(combs)
 
