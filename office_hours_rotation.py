@@ -2,6 +2,12 @@
 import itertools
 import random
 
+"""
+Generates a rotation list for SCG Office Hours. Given the list of office hours representatives (stored in NAMES), uses the random.combination()
+method to select all combinations of size two from NAMES. Then, tries to randomize the rotation list by requiring that no two consecutive office hour
+sessions  have the same representative in both.
+"""
+
 def print_rotation(rotation):
 	"""
 	Args - rotation : list. Each element is a list or tuple of size 2 containing two names from the NAMES list.
@@ -31,7 +37,6 @@ while combs:
 		combs.remove(pair)
 		rotation.append(pair)
 		break
-	print(combs)
 
 print_rotation(rotation)
 	
