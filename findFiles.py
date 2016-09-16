@@ -61,9 +61,11 @@ for root, dirnames, filenames in os.walk(directory):
 				path = os.path.join(root, f)
 				matches.append(path)
 				tot_bytes += os.path.getsize(path)
-		for d in dirnames:
-			if d.endswith(ext):
-				path = os.path.join(root,d)
+		for dname in dirnames:
+			path = os.path.join(root,dname)
+			if path in dont_list_dirs:
+				continue
+			if dname.endswith(ext):
 				matches.append(path)
 				dont_list_dirs.append(path)
 				tot_bytes += getDirSize(path)
