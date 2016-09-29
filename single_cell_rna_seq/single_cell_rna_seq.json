@@ -18,7 +18,7 @@
 			"analysis": "star_index_genome",
 			"description": "Creates a genomic index, used when mapping reads to the reference.",
 			"program": "STAR",
-			"enable": 1,
+			"enable": 0,
 			"modules": ["${starModule}"],
 			
 			"qsub": {
@@ -63,6 +63,8 @@
 			"inputFormat": "bam",
 
 			"dependencies": ["star_load_genome"],
+
+			"outfiles": ["htseq_count_file": "${outdir}/ReadsPerGene.out.tab"}],
 
 			"qsub": {
 				"mem": "4G",
