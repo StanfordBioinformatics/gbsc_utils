@@ -59,7 +59,7 @@ def mem(fqFile):
 	dico = {}
 	for attLine,seq,plusLine,qual in indexparse(fqFile,index=False):
 			seqid = getSeqIdFromAttLine(attLine)
-			dico[seqid] = "\n".join([attLine,seq,plusLine,qual]) + "\n"
+			dico[seqid] = [attLine,seq,plusLine,qual]
 	return dico
 
 def indexparse(fqFile,index=True):
