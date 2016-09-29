@@ -25,6 +25,10 @@ prefix = str(args.prefix)
 freads_file = args.reads_file
 rreads_file = args.reads2_file
 outdir = args.outdir
+
+if not os.path.exists(outdir):
+	os.mkdir(outdir)
+
 barcodes = [x.upper() for x in args.barcodes]
 for barcode in barcodes:
 	for nuc in barcode:
