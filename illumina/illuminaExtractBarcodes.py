@@ -38,7 +38,7 @@ for barcode in barcodes:
 now = time.time()
 file_handles = {}
 for i in barcodes:
-	fastq_file_path = os.path.join(outdir,prefix + "_" + i + ".fq")
+	fastq_file_path = os.path.join(outdir,prefix + "_" + i + ".fastq")
 	file_handles[i] = open(fastq_file_path,'w')
 
 freads = fastq_utils.mem(freads_file)
