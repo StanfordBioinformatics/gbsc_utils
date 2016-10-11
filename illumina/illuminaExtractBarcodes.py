@@ -12,6 +12,9 @@ from gbsc_utils.fastq import fastq_utils
 
 
 NUCLEOTIDES = "ACTGN"
+FORWARD = "forward"
+REVERSE = "reverse"
+
 description = "Parses the given barcoded samples out of a FASTQ file. Supports interleaving of paired-end reads when --reads2-file is specified."
 parser = ArgumentParser(description=description)
 parser.add_argument("--reads-file",required=True,help="Required. The FASTQ file. For PE sequencing, this is the forward reads file.")
@@ -38,8 +41,12 @@ for barcode in barcodes:
 now = time.time()
 file_handles = {}
 for i in barcodes:
-	fastq_file_path = os.path.join(outdir,prefix + "_" + i + ".fastq")
-	file_handles[i] = open(fastq_file_path,'w')
+	file_handles[i] = {}
+	fastq_file_path = os.path.join(outdir,prefix + "_" + i + "_1.fastq")
+	file_handles[i][FORWARD] = open(fastq_file_path,'w')
+	if rreads_file:
+		reverse_fastq_file_path = os.path.join(outdir,prefix + "_" + i + "_2.fastq")
+		file_handles[i][REVERSE] = open(reverse_fastq_file_path,"w")
 
 freads = fastq_utils.mem(freads_file)
 rreads = {}
@@ -52,16 +59,19 @@ for seqid in freads:
 	attLine = rec[0]
 	barcode = attLine.split(":")[-1]
 	if barcode in barcodes:
-		fastq_utils.writeRec(file_handles[barcode],rec)	
+		fastq_utils.writeRec(file_handles[barcode][FORWARD],rec)	
 		if rreads_file:
-			fastq_utils.writeRec(file_handles[barcode],rreads[seqid])
+			fastq_utils.writeRec(file_handles[barcode][REVERSE],rreads[seqid])
 
 #Remove empty barcode files
-for barcode in file_handles:
-	fh = file_handles[barcode]
-	if fh.tell() == 0:
-		fh.close()
-		os.remove(fh.name)
-	else:
-		fh.close()
-
+def rm_empty_output_files(read_direction):
+	for barcode in file_handles:
+		fh = file_handles[barcode][read_direction]
+		if fh.tell() == 0:
+			fh.close()
+			os.remove(fh.name)
+		else:
+			fh.close()
+	
+rm_empty_output_files(FORWARD)
+rm_empty_output_files(REVERSE)
