@@ -21,9 +21,9 @@ def print_rotation(rotation):
 	for i in rotation:
 		print("{}\t{}".format(i[0],i[1]))
 
-NAMES = ['Ramesh', 'Watson', 'Paul', 'Isaac', 'Amin', 'Keith']
+NAMES = ["Ramesh", "Watson", "Paul", "Isaac", "Amin", "Keith", "Wendy", "Vandhana"]
 if len(NAMES) <4:
-	raise Exception("There aren't enough person in the NAMES list for this rotation generator to work.")
+	raise Exception("There aren't enough names in the NAMES list for this rotation generator to work.")
 
 gen = itertools.combinations(NAMES,2)
 combs = list(gen)
