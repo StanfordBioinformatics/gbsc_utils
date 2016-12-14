@@ -11,7 +11,8 @@ import os
 from gbsc_utils.fastq import fastq_utils
 
 
-NUCLEOTIDES = "ACTGN"
+NUCLEOTIDES = "ACTGN+"
+#Note I add the '+' above b/c Illumina duel-indexed barcodes are separated by '+' in the header line of a FASTQ record, i.e. ATC+CAG.
 FORWARD = "forward"
 REVERSE = "reverse"
 
