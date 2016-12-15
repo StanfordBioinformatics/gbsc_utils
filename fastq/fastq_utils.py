@@ -41,7 +41,7 @@ class Index:
 
 	def _indexReads(self):
 		dico = {}
-		for key,val in indexparse(self.fh.name,index=True):
+		for key,val in indexparse(fh=self.fh.name,index=True):
 			dico[key] = val
 		return dico
 	
@@ -52,17 +52,26 @@ class Index:
 		return self.fh.read(numBytes)
 
 def parse(fqFile):
+	fh = getFastqReadFileHandle(fqFile)
 	for attLine,seq,plusLine,qual in indexparse(fqFile,index=False):
 		yield attLine,seq,plusLine,qual
 
 def mem(fqFile):
 	dico = {}
-	for attLine,seq,plusLine,qual in indexparse(fqFile,index=False):
+	fh = getFastqReadFileHandle(fqFile)
+	for attLine,seq,plusLine,qual in indexparse(fh=fh,index=False):
 			seqid = getSeqIdFromAttLine(attLine)
 			dico[seqid] = [attLine,seq,plusLine,qual]
 	return dico
 
-def indexparse(fqFile,index=True):
+def fileseek_hash(fqFile):
+	fh = getFastqReadFileHandle(fqFile)
+	seeks = {}
+	for i in indexparse(fh=fh,index=True):
+		seeks[i[0]] = i[1]
+	return fh,seeks
+
+def indexparse(fh,index=True):
 	"""
 	This is a generator that steps through each record (in order) in the input FASTQ file. When the index parameter is true, returns a two item tuple for each record.
   The first item is the sequence ID (parsed as the first whitespace delimited element on the header line and exludes the leading "@" symbol), and the second item is
@@ -70,7 +79,6 @@ def indexparse(fqFile,index=True):
   of the FASTQ record, in that order.
 	"""
 	INDEX=index
-	fh = getFastqReadFileHandle(fqFile)
 	plusLineSeen = False
 	attLine = ""
 	seq = ""
@@ -118,7 +126,6 @@ def indexparse(fqFile,index=True):
 				plusLine = ""
 				plusLineSeen = False
 				qual = ""
-	fh.close()
 
 def getFastqReadFileHandle(fqFile):
 	if fqFile.endswith(".gz"):
@@ -141,4 +148,4 @@ def writeRec(fh,rec):
 	Args     : fh - file handle
 						 rec - a FATQ record of the form that is returned by the parse() function.
 	"""
-	fh.write("\n".join(rec) + "\n")
+	fh.write("\n".join(rec).rstrip() + "\n")
