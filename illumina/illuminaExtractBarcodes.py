@@ -49,20 +49,25 @@ for i in barcodes:
 		reverse_fastq_file_path = os.path.join(outdir,prefix + "_" + i + "_2.fastq")
 		file_handles[i][REVERSE] = open(reverse_fastq_file_path,"w")
 
-freads = fastq_utils.mem(freads_file)
+freads_fh, freads = fastq_utils.fileseek_hash(freads_file)
 rreads = {}
 if rreads_file:
-	rreads = fastq_utils.mem(rreads_file)
+	rreads_fh, rreads = fastq_utils.fileseek_hash(rreads_file)
 
 for seqid in freads:
-	rec = freads[seqid]
-	#rec is a list of the 4 elements ["attLine", "sequence string", "+" ,"quality string"]
-	attLine = rec[0]
+	start,end = freads[seqid]
+	freads_fh.seek(start)
+	forward_rec = freads_fh.read(end - start).split("\n")
+	#forward_rec is a list of the 4 elements ["attLine", "sequence string", "+" ,"quality string"]
+	attLine = forward_rec[0]
 	barcode = attLine.split(":")[-1]
 	if barcode in barcodes:
-		fastq_utils.writeRec(file_handles[barcode][FORWARD],rec)	
-		if rreads_file:
-			fastq_utils.writeRec(file_handles[barcode][REVERSE],rreads[seqid])
+		fastq_utils.writeRec(file_handles[barcode][FORWARD],forward_rec)	
+		if rreads:
+			start,end = rreads[seqid]
+			rreads_fh.seek(start)
+			reverse_rec = rreads_fh.read(end - start).split("\n")
+			fastq_utils.writeRec(file_handles[barcode][REVERSE],reverse_rec)
 
 #Remove empty barcode files
 def rm_empty_output_files(read_direction):
@@ -76,3 +81,7 @@ def rm_empty_output_files(read_direction):
 	
 rm_empty_output_files(FORWARD)
 rm_empty_output_files(REVERSE)
+
+freads_fh.close()
+if rreads:
+	rreads_fh.close()
