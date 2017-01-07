@@ -1,29 +1,7 @@
 import re
 import gzip
-import bz2
+import bzip2
 wsReg = re.compile(r'\s+')
-
-
-def parseIlluminaFastqAttLine(attLine):
-	#Illumina FASTQ Att line format (as of CASAVA 1.8 at least):
-	#  @<instrument-name>:<run ID>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos> <read number>:<is filtered>:<control number>:<barcode sequence>
-	header = attLine.strip()
-	header = header.lstrip("@").split(":")
-	dico = {}
-	dico["instrument"] = header[0]
-	dico["runId"] = header[1]
-	dico["flowcellId"] = header[2]
-	dico["lane"] = header[3]
-	dico["tile"] = header[4]
-	dico["xpos"] = header[5]
-	ypos,readNumber = header[6].split()
-	dico["ypos"] = ypos
-	dico["readNumber"] = readNumber
-	dico["isFiltered"] = header[7]
-	dico["control"] = header[8]
-	dico["barcode"] = header[9]
-	return dico	
-
 
 class Index:
 	def __init__(self,fqFile):
@@ -41,7 +19,7 @@ class Index:
 
 	def _indexReads(self):
 		dico = {}
-		for key,val in indexparse(fh=self.fh.name,index=True):
+		for key,val in indexparse(fh=self.fh,index=True):
 			dico[key] = val
 		return dico
 	
@@ -69,8 +47,34 @@ def fileseek_hash(fqFile):
 	seeks = {}
 	for i in indexparse(fh=fh,index=True):
 		seeks[i[0]] = i[1]
-	return fh,seeks
+	return fh,seek
 
+def fastParse(fastq):
+	"""
+	Function :
+	Args     : fastq - A FASTQ file.
+	Returns  : dict. containing all FASTQ records. The key is the entire title
+						     line, and the value is in turn a dict containing the keys 'seq' and 'qual'. The '+' line of the FASTQ records is ignored. 
+	"""
+	fh = open(fastq,'r')
+	all_records = {}
+	count = 0
+	record = {}
+	for line in fh:
+		line = line.strip()
+		count += 1
+		if count == 1:
+			uid = line
+			record[uid] = {}
+		elif count == 2:
+			record[uid]["seq"] = line
+		elif count == 4:
+			record[uid]["qual"] = line
+			all_records[uid] = record[uid]
+			count = 0
+			record = {}
+	return all_records
+			
 def indexparse(fh,index=True):
 	"""
 	This is a generator that steps through each record (in order) in the input FASTQ file. When the index parameter is true, returns a two item tuple for each record.
@@ -131,7 +135,7 @@ def getFastqReadFileHandle(fqFile):
 	if fqFile.endswith(".gz"):
 		fh = gzip.open(fqFile,'r')
 	elif fqFile.endswith(".bz2"):
-		fh = bz2.BZ2File(fqFile,'r')
+		fh = bzip2.BZ2File(fqFile,'r')
 	else:
 		fh = open(fqFile,'r')
 	return fh
@@ -146,6 +150,6 @@ def writeRec(fh,rec):
 	"""
 	Function : Writes the given FASTQ record to the given file handle. 
 	Args     : fh - file handle
-						 rec - a FATQ record of the form that is returned by the parse() function.
+						 rec - a FASTQ record of the form that is returned by the parse() function.
 	"""
 	fh.write("\n".join(rec).rstrip() + "\n")

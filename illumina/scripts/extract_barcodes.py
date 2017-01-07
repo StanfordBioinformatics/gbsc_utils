@@ -1,6 +1,14 @@
 #!/bin/env python
 
+###
+#Nathaniel Watson
+#nathankw@stanford.edu
+#Stanford Center for Genetics and Personalized Medicine
+#2016-01-06
+###
+
 import os
+import datetime
 from argparse import ArgumentParser
 
 from gbsc_utils.illumina import Illumina
@@ -40,10 +48,12 @@ if not os.path.exists(r1_file):
 if r2_file and not os.path.exists(r2_file):
 	raise Exception("{r2_file} proided to --r2 doens't exist!".format(r2_file=r2_file))
 
+start_time = datetime.datetime.now()
+
 r1_records = Illumina.fastqParse(fastq=r1_file,extract_barcodes=barcodes)
 r2_records = {}
 if r2_file:
-	r2_records = Illumina.fastqParse(fastq=r2_file,barcodes=barcodes)
+	r2_records = Illumina.fastqParse(fastq=r2_file,extract_barcodes=barcodes)
 
 file_handles = {}
 for barcode in barcodes:
@@ -54,7 +64,7 @@ for barcode in barcodes:
 	else:
 		outfile_name += "_" + R1 + FASTQ_EXT
 	file_handles[barcode][R1] = open(outfile_name,"w")
-	if not interleave:
+	if not interleave and r2_records:
 		file_handles[barcode][R2] = open(outfile_name.replace(R1,R2),"w")
 
 output_barcode_counts = {}
@@ -85,8 +95,12 @@ for barcode in file_handles:
 	for output_key in file_handles[barcode]:
 		file_handles[barcode][output_key].close()
 
+end_time = datetime.datetime.now()
+print("\n")
+print("Elapsed time: {time}\n".format(time=str(end_time - start_time)))
 print("Output Statistics")
 for barcode in output_barcode_counts:
 	print(barcode + ": " + str(output_barcode_counts[barcode]))
+print("\n")
 
 

@@ -4,6 +4,7 @@ import collections
 
 
 
+
 class SampleSheetMiSeqToHiSeq:
 	"""Parses a SampleSheet in the MiSeq format. The MiSeq SampleSheet has several sections, with each denoted by a section header within brackets (i.e. [Header]). Sections include [Header],
 		 [Reads], [Settings, and [Data]. 
@@ -176,9 +177,77 @@ class BclSampleSheet:
 #		if project not in dico[lane]:
 #			dico[lane][project] = {}
 	
-		
-			
+def parseIlluminaFastqAttLine(attLine):
+	#Illumina FASTQ Att line format (as of CASAVA 1.8 at least):
+	#  @<instrument-name>:<run ID>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos> <read number>:<is filtered>:<control number>:<barcode sequence>
+	uid = attLine.strip()
+	header = uid.lstrip("@").split(":")
+	dico = {}
+	dico["instrument"] = header[0]
+	dico["runId"] = header[1]
+	dico["flowcellId"] = header[2]
+	dico["lane"] = header[3]
+	dico["tile"] = header[4]
+	dico["xpos"] = header[5]
+	ypos,readNumber = header[6].split()
+	dico["ypos"] = ypos
+	dico["readNumber"] = readNumber
+	dico["isFiltered"] = header[7]
+	dico["control"] = header[8]
+	dico["barcode"] = header[9]
+	return dico	
 
-		
 
+def get_pairedend_read_id(read_id):
+	"""
+	Function : Given either a forward read or reverse read identifier, returns the corresponding paired-end read identifier.
+	Args     : read_id - str. forward read or reverse read identifier. This should be the entire title line of a FASTQ record.
+	Returns  : str. The pairend-end read identifier (title line). 
+	Example  : Setting read_id to "@COOPER:74:HFTH3BBXX:3:1101:29894:1033 1:N:0:NATGAATC+NGATCTCG" will return 
+						     @COOPER:74:HFTH3BBXX:3:1101:29894:1033 2:N:0:NATGAATC+NGATCTCG
+	"""
+	part1, part2 = read_id.strip().split()
+	if part2.startswith("1"):
+		part2 = part2.replace("1","2",1)
+	elif part2.startswith("2"):
+		part2 = part2.replace("2","1",1)
+	else:
+		raise Exception("Unknown read number in {title}".format(title=read_id))
+	return part1 + " " + part2
 
+def fastqParse(fastq,extract_barcodes=[]):
+	"""
+	Function : Parses the records in an Illumina FASTQ file and returns a dict containing all records or only those with the specifie
+             barcodes.
+	Args     : fastq - A FASTQ file.
+						 extract_barcodes - list of one or more barcodes to extract from the FASTQ file. If the barcode is duel-indexed, separate
+						     them with a '-', i.e. 'ATCGGT+GCAGCT', as this is how it is written in the FASTQ file. 
+	Returns  : dict. containing all FASTQ records, or only those records that have the barcode(s) of interest. The key is the entire title
+						     line, and the value is in turn a dict containing the keys 'seq', 'qual', and 'header'. The value of 'header' is a dict
+						     containing the parsed elements of the title line of a FASTQ record; its keys are documented in the
+							   parseIlluminaFastqAttLine() function of this module. Note that the '+' line of the FASTQ records is ignored. 
+	"""
+	fh = open(fastq,'r')
+	all_records = {}
+	count = 0
+	record = {}
+	for line in fh:
+		line = line.strip()
+		count += 1
+		if count == 1:
+			header = parseIlluminaFastqAttLine(line)
+			barcode = header["barcode"]
+			uid = line
+			record[uid] = {"header":header}
+		elif count == 2:
+			record[uid]["seq"] = line
+		elif count == 4:
+			record[uid]["qual"] = line
+			if extract_barcodes:
+				if barcode in extract_barcodes:
+					all_records[uid] = record[uid]
+			else:
+				all_records[uid] = record[uid]
+			count = 0
+			record = {}
+	return all_records
