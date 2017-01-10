@@ -8,6 +8,7 @@
 ###
 
 import os
+import sys
 import datetime
 from argparse import ArgumentParser
 
@@ -50,10 +51,16 @@ if r2_file and not os.path.exists(r2_file):
 
 start_time = datetime.datetime.now()
 
-r1_records = Illumina.fastqParse(fastq=r1_file,extract_barcodes=barcodes)
+print("Parsing R1 FASTQ file")
+sys.stdout.flush()
+r1_records = Illumina.FastqParse(fastq=r1_file,extract_barcodes=barcodes)
 r2_records = {}
 if r2_file:
-	r2_records = Illumina.fastqParse(fastq=r2_file,extract_barcodes=barcodes)
+	print("Parsing R2 FASTQ file")
+	sys.stdout.flush()
+	r2_records = Illumina.FastqParse(fastq=r2_file,extract_barcodes=barcodes)
+print("Finished parsing FASTQ file(s).")
+sys.stdout.flush()
 
 file_handles = {}
 for barcode in barcodes:
@@ -72,15 +79,22 @@ for barcode in barcodes:
 	output_barcode_counts[barcode] = 0
 
 def format_rec_for_output(rec_id,rec):
-	return "\n".join([rec_id,rec["seq"],"+",rec["qual"]]) + "\n"
+	"""
+	Args    : rec_id - str. The title line of an Illumina FASTQ record.
+					  rec - two-item list of [seq,qual].
+	Returns : str. 
+	"""
+	return "\n".join([rec_id,rec[0],"+",rec[1]]) + "\n"
 
-for rec_id in r1_records:
-	record = r1_records[rec_id]
-	barcode = record["header"]["barcode"]
+for rec_id,index in r1_records.lookup.iteritems():
+	record = r1_records.data[index] #a list of [seq,qual]
+	header = Illumina.FastqParse.parseIlluminaFastqAttLine(rec_id)
+	barcode = header["barcode"]
+		
 	if r2_records:
 		rec_2_id = Illumina.get_pairedend_read_id(read_id=rec_id)
 		try:
-			record_2 = r2_records[rec_2_id]
+			record_2 = r2_records.data[r2_records.lookup[rec_2_id]]
 		except KeyError:
 			print("Warning: Found foward read {rec_id} but not reverse read {rec_2_id}. Skipping".format(rec_id=rec_id,rec_2_id=rec_2_id))
 			continue
@@ -102,5 +116,6 @@ print("Output Statistics")
 for barcode in output_barcode_counts:
 	print(barcode + ": " + str(output_barcode_counts[barcode]))
 print("\n")
+sys.stdout.flush()
 
 
