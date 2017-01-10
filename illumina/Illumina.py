@@ -1,6 +1,7 @@
 import sys
 import re
 import collections
+import datetime
 
 
 
@@ -177,27 +178,6 @@ class BclSampleSheet:
 #		if project not in dico[lane]:
 #			dico[lane][project] = {}
 	
-def parseIlluminaFastqAttLine(attLine):
-	#Illumina FASTQ Att line format (as of CASAVA 1.8 at least):
-	#  @<instrument-name>:<run ID>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos> <read number>:<is filtered>:<control number>:<barcode sequence>
-	uid = attLine.strip()
-	header = uid.lstrip("@").split(":")
-	dico = {}
-	dico["instrument"] = header[0]
-	dico["runId"] = header[1]
-	dico["flowcellId"] = header[2]
-	dico["lane"] = header[3]
-	dico["tile"] = header[4]
-	dico["xpos"] = header[5]
-	ypos,readNumber = header[6].split()
-	dico["ypos"] = ypos
-	dico["readNumber"] = readNumber
-	dico["isFiltered"] = header[7]
-	dico["control"] = header[8]
-	dico["barcode"] = header[9]
-	return dico	
-
-
 def get_pairedend_read_id(read_id):
 	"""
 	Function : Given either a forward read or reverse read identifier, returns the corresponding paired-end read identifier.
@@ -215,39 +195,77 @@ def get_pairedend_read_id(read_id):
 		raise Exception("Unknown read number in {title}".format(title=read_id))
 	return part1 + " " + part2
 
-def fastqParse(fastq,extract_barcodes=[]):
-	"""
-	Function : Parses the records in an Illumina FASTQ file and returns a dict containing all records or only those with the specifie
-             barcodes.
-	Args     : fastq - A FASTQ file.
-						 extract_barcodes - list of one or more barcodes to extract from the FASTQ file. If the barcode is duel-indexed, separate
-						     them with a '-', i.e. 'ATCGGT+GCAGCT', as this is how it is written in the FASTQ file. 
-	Returns  : dict. containing all FASTQ records, or only those records that have the barcode(s) of interest. The key is the entire title
-						     line, and the value is in turn a dict containing the keys 'seq', 'qual', and 'header'. The value of 'header' is a dict
-						     containing the parsed elements of the title line of a FASTQ record; its keys are documented in the
-							   parseIlluminaFastqAttLine() function of this module. Note that the '+' line of the FASTQ records is ignored. 
-	"""
-	fh = open(fastq,'r')
-	all_records = {}
-	count = 0
-	record = {}
-	for line in fh:
-		line = line.strip()
-		count += 1
-		if count == 1:
-			header = parseIlluminaFastqAttLine(line)
-			barcode = header["barcode"]
-			uid = line
-			record[uid] = {"header":header}
-		elif count == 2:
-			record[uid]["seq"] = line
-		elif count == 4:
-			record[uid]["qual"] = line
-			if extract_barcodes:
-				if barcode in extract_barcodes:
-					all_records[uid] = record[uid]
-			else:
-				all_records[uid] = record[uid]
-			count = 0
-			record = {}
-	return all_records
+class FastqParse():
+	def __init__(self,fastq,log=sys.stdout,extract_barcodes=[]):
+		"""
+		Function : Parses the records in an Illumina FASTQ file and returns a dict containing all records or only those with the specifie
+	             barcodes.
+		Args     : fastq - A FASTQ file.
+							 log - file handle for logging. Defaults to sys.stdout.
+							 extract_barcodes - list of one or more barcodes to extract from the FASTQ file. If the barcode is duel-indexed, separate
+							     them with a '-', i.e. 'ATCGGT+GCAGCT', as this is how it is written in the FASTQ file. 
+		Returns  : dict. containing all FASTQ records, or only those records that have the barcode(s) of interest. The key is the entire title
+							     line, and the value is in turn a dict containing the keys 'seq', 'qual', and 'header'. The value of 'header' is a dict
+							     containing the parsed elements of the title line of a FASTQ record; its keys are documented in the
+								   parseIlluminaFastqAttLine() function of this module. Note that the '+' line of the FASTQ records is ignored. 
+		"""
+		self.fastqFile = fastq
+		self.barcodes = extract_barcodes
+		self.log = log
+		self._parse() #sets self.data to the parsed FASTQ file as a dict.
+
+	@classmethod
+	def parseIlluminaFastqAttLine(cls,attLine):
+		#Illumina FASTQ Att line format (as of CASAVA 1.8 at least):
+		#  @<instrument-name>:<run ID>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos> <read number>:<is filtered>:<control number>:<barcode sequence>
+		uid = attLine.strip()
+		header = uid.lstrip("@").split(":")
+		dico = {}
+		dico["instrument"] = header[0]
+		dico["runId"] = header[1]
+		dico["flowcellId"] = header[2]
+		dico["lane"] = header[3]
+		dico["tile"] = header[4]
+		dico["xpos"] = header[5]
+		ypos,readNumber = header[6].split()
+		dico["ypos"] = ypos
+		dico["readNumber"] = readNumber
+		dico["isFiltered"] = header[7]
+		dico["control"] = header[8]
+		dico["barcode"] = header[9]
+		return dico	
+
+	def _parse(self):
+		self.log.write("Parsing " + self.fastqFile + "\n")
+		self.log.flush()
+		fh = open(self.fastqFile,'r')
+		self.data = []
+		self.lookup = {}
+		count = 0
+		lineCount = 0
+		for line in fh:
+			lineCount += 1
+			count += 1
+			line = line.strip()
+			if count == 1:
+				#uid = lineCount
+				uid = line
+				barcode = line.rsplit(":",1)[-1]
+				#self.data[uid] = {"name": line}
+				#self.data[uid] = {}
+			elif count == 2:
+				seq = line
+				#self.data[uid]["seq"] = line
+			elif count == 4:
+				#self.data[uid]["qual"] = line
+				if barcode in self.barcodes or not self.barcodes:
+						self.data.append([seq,line])
+						self.lookup[uid] = len(self.data) - 1
+				count = 0
+			if lineCount % 1000000 == 0:
+				self.log.write(str(datetime.datetime.now()) + ":  " + str(lineCount) + "\n")
+				self.log.flush()
+		fh.close()
+		self.log.write("hey bob" + "\n")
+		self.log.flush()
+#Total number of lines in SCGPM_MD-DNA-1_HFTH3_L3_unmatched_R1.fastq is 347,060,820.
