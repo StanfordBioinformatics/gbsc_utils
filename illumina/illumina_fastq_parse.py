@@ -23,10 +23,10 @@ class FastqParse():
 		"""
 		Function : Parses the records in an Illumina FASTQ file and stores all records or only those having specific barcodes.
 							 The sequence and quality strings of each FASTQ record are stored in a list of lists of the form
-							 											[ [“ACGT”,”#AAF”], [“GGAT”,” #AAA”] … ]
+																		[ ["ACGT","#AAF"], ["GGAT"," #AAA"] ... ] 
 							 where each sublist stores the sequence followed by the quality. 
 							 This list of lists is stored as self.data. A lookup table (dict) is also stored as self.lookup. It is of the form 
-																		{ “seqid_x”: index_x, “seqid_y”: index_y, … }
+																		{ "seqid_x": index_x, "seqid_y": index_y, ... }
 							 where an index gives the position in the list of the record with the given sequence ID. The sequence ID is stored
 							 as the entire title line of a FASTQ record.
 		Args     : fastq - The FASTQ file to be parsed.
