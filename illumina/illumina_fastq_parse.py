@@ -39,7 +39,7 @@ class FastqParse():
 		self.log = log
 		self._parse() #sets self.data
 									#sets self.lookup.
-	@classmethod
+	#@classmethod #used for when using memory_profiler.
 	def parseIlluminaFastqAttLine(cls,attLine):
 		#Illumina FASTQ Att line format (as of CASAVA 1.8 at least):
 		#  @<instrument-name>:<run ID>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos> <read number>:<is filtered>:<control number>:<barcode sequence>
@@ -60,6 +60,7 @@ class FastqParse():
 		dico["barcode"] = header[9]
 		return dico	
 
+	@profile
 	def _parse(self):
 		self.log.write("Parsing " + self.fastqFile + "\n")
 		self.log.flush()
@@ -84,8 +85,11 @@ class FastqParse():
 			elif count == 4:
 				#self.data[uid]["qual"] = line
 				if barcode in self.barcodes or not self.barcodes:
-						self.data.append([seq,line])
-						self.lookup[uid] = len(self.data) - 1
+						self.data.append([uid,seq,line])
+						hash_id = hash(uid)
+						if hash_id in self.lookup:
+							raise Exception("Found multiple entires for the FASTQ record having title line '{uid}'.".format(uid=uid))
+						self.lookup[hash_id] = len(self.data) - 1
 				count = 0
 			if lineCount % 1000000 == 0:
 				self.log.write(str(datetime.datetime.now()) + ":  " + str(lineCount) + "\n")
