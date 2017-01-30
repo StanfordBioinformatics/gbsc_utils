@@ -40,5 +40,8 @@ for run_folder in completed_runs + aborted_runs:
 
     logger.info("Deleting Data dir in run {run}.".format(run=run_folder))
     dataDir = os.path.join(run_folder,"Data")
-    shutil.rmtree(dataDir)
+    try:
+      shutil.rmtree(dataDir)
+    except OSError:
+      continue #Data directory doesn't exist Can be the case for aborted runs. 
     logger.info("Successfully deleted Data dir in run {run}.".format(run=run_folder))
