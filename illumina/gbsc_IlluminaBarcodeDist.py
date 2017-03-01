@@ -1,4 +1,4 @@
-#!/srv/gs1/software/python/3.2.3/bin/python3
+#!/bin/env python
 
 ###AUTHOR###
 #Nathaniel Watson
@@ -29,7 +29,7 @@ def barcodeHist(fqFile,outfile):
 	bcDico = {}
 	count = 0
 	for line in fh:
-		line = str(line) #is a bytes object if opened with gzip
+		line = str(line) #is a bytes object if opened with gzip in Python3
 		line = line.strip()
 		if not line:
 			continue
