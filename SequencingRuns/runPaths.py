@@ -45,7 +45,7 @@ ARCHIVE_STATE_NOT_STARTED = 0
 ARCHIVE_STATE_IN_PROGRESS = 1
 ARCHIVE_STATE_COMPLETE = 2
 
-def parseLane(lane,stripLeadingL=False,stripLeadingZeros=True):
+def parseLane(lane,prefixWithL=False,stripLeadingZeros=True):
 	"""
 	Args    : lane - str. Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have 
                    preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
@@ -54,16 +54,12 @@ def parseLane(lane,stripLeadingL=False,stripLeadingZeros=True):
 	                 the first non-zero integer are removed.  
 	Returns : str.
 	"""
-	lprefix = False
-	if lane[0] == "L":
-		lprefix = True
-		lane = lane.lstrip("L")
+	lane = lane.lstrip("L")
 	if stripLeadingZeros:
 		lane = lane.lstrip("0")
-	if stripLeadingL or not lprefix:
-		return lane
-	else:
-		return "L" + lane
+	if prefixWithL:
+		lane = "L" + lane
+	return lane
 	
 
 def getRunNameFlf(filename):
@@ -155,7 +151,7 @@ def getPubPath(run,lane=None):
 	year,month = getRunYearMonth(run)
 	pubdir = os.path.join(pubDir,year,month,run)
 	if lane:
-		lane = parseLane(lane)
+		lane = parseLane(lane,prefixWithL=True)
 	rundir = pubdir
 	if not os.path.exists(pubdir):
 		oldpubdir = os.path.join(oldPubDir,year,month,run)	
@@ -175,7 +171,7 @@ def getLaneStatsFile(run,lane):
                     preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
 	Returns  : str.
 	"""
-	lane = parseLane(lane=lane,stripLeadingZeros=True)
+	lane = parseLane(lane=lane,prefixWithL=True,stripLeadingZeros=True)
 	runPath = getPubPath(run)
 	statsFile = os.path.join(runPath,run + "_" + lane + "_" + "stats.csv")
 	return statsFile
@@ -215,23 +211,25 @@ def findAllBams(run,lane):
       					preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
 	"""
 	
-	lane = parseLane(lane=lane,stripLeadingZeros=True)
+	lane = parseLane(lane=lane,prefixWithLane=True,stripLeadingZeros=True)
 	runPath = getPubPath(run,lane=lane)
 	globPat = os.path.join(runPath,"*_pf.bam*")
 	bams =  glob.glob(globPat)
 	return bams
 
-def findAllFastqs(run,lane):	
+def findFastqs(run,lane,barcode=False):	
 	"""
 	Args : run  - str. run name (i.e. 120124_ROCKFORD_00123_FC64DHK)
 			   lane - Lane number identifier in the form of an integer or with an "L" prefix followed by an integer. The integer may have
       					preceeding zeros. i.e. the following are acceptable: L1, L001, 1, 001.
 	"""
 	
-	lane = parseLane(lane=lane,stripLeadingZeros=True)
+	lane = parseLane(lane=lane,prefixWithL=True,stripLeadingZeros=True)
 	runPath = getPubPath(run,lane=lane)
 	globPat = os.path.join(runPath,"*_pf.fastq*")
 	fastqs =  glob.glob(globPat)
+	if barcode:
+		fastqs = [x for x in fastqs if barcode in x]
 	return fastqs
 
 #def rawArchiveDone(rundir):
