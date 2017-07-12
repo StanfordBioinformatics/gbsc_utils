@@ -21,7 +21,7 @@ def print_rotation(rotation):
 	for i in rotation:
 		print("{}\t{}".format(i[0],i[1]))
 
-NAMES = ["Ramesh", "Watson", "Paul", "Isaac", "Amin", "Keith", "Wendy", "Vandhana"]
+NAMES = ["Ramesh", "Watson", "Paul", "Amir", "Keith", "Wendy", "Vandhana", "Priya"]
 if len(NAMES) <4:
 	raise Exception("There aren't enough names in the NAMES list for this rotation generator to work.")
 
