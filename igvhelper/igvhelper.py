@@ -8,7 +8,7 @@
 #
 #########################################
 
-STANFORD_ID='' 
+STANFORD_ID=""
 
 #########################################
 
@@ -36,7 +36,7 @@ if not STANFORD_ID:
 
 
 # Use fully qualified host name
-HOST='carmack.stanford.edu'
+HOST='scg4-dtn03.stanford.edu'
 
 SERVER_CMD='/opt/TurboVNC/bin/vncserver'
 VIEWER_CMD='/opt/TurboVNC/bin/vncviewer'
@@ -46,11 +46,15 @@ import re
 import subprocess
 import sys
 
+if sys.version_info.major == 3:
+  raise Exception("This program requires a Python 2x version. 3x is not supported.")
+
 parser=ArgumentParser(
     description='Start or stop TurboVNCserver on a remote machine cluster')
-parser.add_argument('--start', action='store_true')
-parser.add_argument('--stop', action='store_true')
-parser.add_argument('--installigvlink', action = 'store_true')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('--start', action='store_true')
+group.add_argument('--stop', action='store_true')
+group.add_argument('--installigvlink', action = 'store_true')
 args = parser.parse_args()
 START = args.start
 STOP = args.stop
@@ -139,29 +143,24 @@ def start():
         VIEWER_CMD,
         HOST,
         port)
+    print("Running command {cmd}".format(cmd=cmd))
     subprocess.call(cmd, shell=True)
 
 def installigvlink():
     # Write this script on the remote desktop
     # and chmod it to be executable.
     content = """\
-#-Xmx2000m indicates 2000 mb of memory, adjust number up or down as needed
-#-Dproduction=true disables non-released and development features
-/usr/java/latest/bin/java -Dproduction=true  -Dapple.laf.useScreenMenuBar=true -Xmx2000m -Djava.net.preferIPv4Stack=true -jar /srv/gs1/software/igv/igv-2.3.3/igv.jar $*"""
-    cmd = 'echo -n "%s" | ssh %s@%s "cat > ~/Desktop/igv.sh; '\
+#-Xmx4000m indicates 4000 mb of memory, adjust number up or down as needed
+#Add the flag -Ddevelopment = true to use features still in development
+exec /srv/gsfs0/software/java/jre1.8.0_66/bin/java -Xmx4000m -Dapple.laf.useScreenMenuBar=true -Djava.net.preferIPv4Stack=true -jar /srv/gsfs0/software/igv/IGV_2.3.82/igv.jar \\\"\$@\\\"
+"""
+    cmd = 'echo "%s" | ssh %s@%s "cat > ~/Desktop/igv.sh; '\
           'chmod +x ~/Desktop/igv.sh"' % (
               content,
               STANFORD_ID,
               HOST,
-          )        
+          )
     subprocess.call(cmd, shell=True)
-
-if not (START or STOP or INSTALL_IGV):
-    parser.print_help()
-    sys.exit()
-
-if START and STOP:
-    raise Exception("Can't start and stop at the same time")
 
 if INSTALL_IGV:
     installigvlink()
