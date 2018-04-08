@@ -36,10 +36,12 @@ if not STANFORD_ID:
 
 
 # Use fully qualified host name
-HOST='scg4-dtn03.stanford.edu'
+HOST='vnc.scg.stanford.edu'
 
-SERVER_CMD='/opt/TurboVNC/bin/vncserver'
-VIEWER_CMD='/opt/TurboVNC/bin/vncviewer'
+#SERVER_CMD='/opt/TurboVNC/bin/vncserver'
+#VIEWER_CMD='/opt/TurboVNC/bin/vncviewer'
+SERVER_CMD='vncserver'
+VIEWER_CMD='vncviewer'
 
 from argparse import ArgumentParser
 import re
