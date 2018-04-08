@@ -39,8 +39,8 @@ if not STANFORD_ID:
 HOST='vnc.scg.stanford.edu'
 
 SERVER_CMD='vncserver' #on HOST
-#VIEWER_CMD='/opt/TurboVNC/bin/vncviewer'
-VIEWER_CMD='vncviewer' #On localhost
+VIEWER_CMD='/opt/TurboVNC/bin/vncviewer'
+
 
 from argparse import ArgumentParser
 import re
