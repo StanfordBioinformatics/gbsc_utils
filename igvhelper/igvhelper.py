@@ -36,10 +36,11 @@ if not STANFORD_ID:
 
 
 # Use fully qualified host name
-HOST='scg4-dtn03.stanford.edu'
+HOST='vnc.scg.stanford.edu'
 
-SERVER_CMD='/opt/TurboVNC/bin/vncserver'
+SERVER_CMD='vncserver' #on HOST
 VIEWER_CMD='/opt/TurboVNC/bin/vncviewer'
+
 
 from argparse import ArgumentParser
 import re
@@ -112,12 +113,8 @@ def getstartedxdisplay(text):
     # Log file is /home/nhammond/.vnc/carmack.stanford.edu:1.log
 
     pattern = r'started on display %s:([0-9]+)' % HOST
-    match = re.search(pattern, text)
-    if not match:
-        raise Exception(
-            'Could not parse this text to identify the X Display number: %s' 
-            % text)
-    return int(match.groups()[0])
+    display = text.split(":")[1].split()[0]
+    return int(display)
 
 def start():
     # First clean up any previous session
