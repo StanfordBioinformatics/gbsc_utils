@@ -6,12 +6,10 @@ devs = [
         'Keith',
         'Paul',  
         'Amir', 
-        'Nathan', 
         'Ziye']
 
 analysts = [
             'Ramesh', 
-            'Gao', 
             'Vandhana', 
             'Jina', 
             'Wenyu']
