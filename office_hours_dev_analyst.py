@@ -6,13 +6,16 @@ devs = [
         'Keith',
         'Paul',  
         'Amir', 
-        'Ziye']
+        'Daniel',
+        'Tao',
+        'Arash']
 
 analysts = [
             'Ramesh', 
             'Vandhana', 
             'Jina', 
-            'Wenyu']
+            'Pratima',
+            'Yan']
 
 shuffle(devs)
 shuffle(analysts)
