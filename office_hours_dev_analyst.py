@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from random import shuffle
 
@@ -25,3 +25,8 @@ while devs and analysts:
     analyst = analysts.pop()
 
     print(f"{dev}   {analyst}")
+
+if devs or analysts:
+    byes = ','.join(devs + analysts)
+    print("~~~~~~")
+    print(f"Bye: {byes}.")
